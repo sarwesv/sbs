@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+  <title>Phase 1 Prototype — Hand-Tracking Controls</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <!-- The camera feed is deliberately never shown to the user: this video
+       element exists only so the browser keeps decoding frames for the
+       hand-tracking model to read. It's off-screen, not display:none,
+       because some browsers stop decoding frames on a display:none video. -->
+  <video id="camera-feed" playsinline autoplay muted></video>
+
+  <div id="status">Requesting camera…</div>
+
+  <div id="readout">
+    <div class="axis">
+      <span class="axis-label">THROTTLE (left hand height)</span>
+      <div class="bar-track"><div id="throttle-bar" class="bar-fill vertical"></div></div>
+      <span id="throttle-value" class="axis-value">--</span>
+    </div>
+    <div class="axis">
+      <span class="axis-label">STICK ROLL (right hand x)</span>
+      <div class="bar-track horizontal"><div id="roll-bar" class="bar-fill horizontal"></div></div>
+      <span id="roll-value" class="axis-value">--</span>
+    </div>
+    <div class="axis">
+      <span class="axis-label">STICK PITCH (right hand y)</span>
+      <div class="bar-track"><div id="pitch-bar" class="bar-fill vertical"></div></div>
+      <span id="pitch-value" class="axis-value">--</span>
+    </div>
+  </div>
+
+  <div id="hud">
+    <span id="fps">-- fps</span>
+    <span id="hands-detected">0 hands</span>
+    <label id="flip-toggle-label">
+      <input type="checkbox" id="flip-toggle" />
+      swap left/right hand
+    </label>
+  </div>
+
+  <script type="module" src="app.js"></script>
+</body>
+</html>

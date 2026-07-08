@@ -1,0 +1,41 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html, body {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: #000;
+  touch-action: none; /* stop mobile browser gestures from fighting Cesium's own drag/pinch */
+}
+
+#stereo {
+  display: flex;
+  width: 100%;
+  height: 100%;
+}
+
+.eye {
+  width: 50%;
+  height: 100%;
+  position: relative;
+}
+
+#hud {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  justify-content: space-between;
+  padding: 6px 10px;
+  font-family: monospace;
+  font-size: 14px;
+  color: #0f0;
+  background: rgba(0, 0, 0, 0.4);
+  pointer-events: none;
+  z-index: 10;
+}

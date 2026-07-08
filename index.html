@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+  <title>SBS Flight Simulator</title>
+  <link rel="stylesheet" href="style.css" />
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://cdn.jsdelivr.net/npm/three@0.185.1/build/three.module.js",
+        "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.185.1/examples/jsm/",
+        "3d-tiles-renderer": "https://cdn.jsdelivr.net/npm/3d-tiles-renderer@0.4.28/build/index.js",
+        "3d-tiles-renderer/three": "https://cdn.jsdelivr.net/npm/3d-tiles-renderer@0.4.28/build/index.three.js",
+        "3d-tiles-renderer/plugins": "https://cdn.jsdelivr.net/npm/3d-tiles-renderer@0.4.28/build/index.plugins.js",
+        "3d-tiles-renderer/three/plugins": "https://cdn.jsdelivr.net/npm/3d-tiles-renderer@0.4.28/build/index.three-plugins.js"
+      }
+    }
+  </script>
+</head>
+<body>
+  <div id="scene-container"></div>
+
+  <div id="hud">
+    <div class="hud-row"><span class="hud-label">STATUS</span><span id="status-value" class="hud-value">ON GROUND</span></div>
+    <div class="hud-row"><span class="hud-label">AIRSPEED</span><span id="airspeed-value" class="hud-value">0 kt</span></div>
+    <div class="hud-row"><span class="hud-label">ALTITUDE</span><span id="altitude-value" class="hud-value">0 m</span></div>
+    <div class="hud-row"><span class="hud-label">THROTTLE</span><span id="throttle-value" class="hud-value">30%</span></div>
+    <div class="hud-row"><span class="hud-label">HEADING</span><span id="heading-value" class="hud-value">0°</span></div>
+    <div class="hud-row"><span class="hud-label">INPUT</span><span id="input-mode-value" class="hud-value">keyboard</span></div>
+    <div class="hud-row"><span class="hud-label">AIRCRAFT</span><span id="aircraft-value" class="hud-value">-</span></div>
+  </div>
+
+  <div id="controls-help">
+    W/S throttle · Arrows pitch/roll · A/D yaw · R reset · Drag mouse to orbit camera · Scroll to zoom
+  </div>
+
+  <!-- Aircraft picker panel - hidden for now while debugging -->
+  <!-- <div id="aircraft-picker-panel">
+    <div class="aircraft-picker-label">Select Aircraft:</div>
+    <div id="aircraft-picker"></div>
+  </div> -->
+
+  <script type="module" src="js/main.js"></script>
+</body>
+</html>
