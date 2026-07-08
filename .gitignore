@@ -1,0 +1,15 @@
+# Local dev
+node_modules/
+.DS_Store
+*.log
+
+# Build artifacts
+dist/
+build/
+
+# IDE
+.vscode/
+.idea/
+
+# Archive is reference only
+archive/

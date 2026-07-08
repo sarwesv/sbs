@@ -1,33 +1,50 @@
 # SBS Flight Simulator
 
-A mobile-web VR flight simulator for cardboard-style headsets: hand-tracking
-throttle/stick via phone camera, stereo rendering, head tracking, real-world
-terrain and imagery (Cesium ion), and multiple selectable aircraft.
+Mobile web VR flight simulator for cardboard-style headsets.
 
-Runs entirely client-side as a static site — open `index.html` (or serve the
-repo root) on a phone browser, tap "Start Flying", and drop the phone into a
-cardboard viewer.
+- **Stereo 3D rendering** — dual-eye view (50% viewport each) for cardboard headsets
+- **Head tracking** — device orientation (iOS/Android) + drag-to-look fallback
+- **Real-world terrain** — SFO runway (Cesium World Terrain + Bing aerial imagery via Cesium ion)
+- **Realistic flight physics** — lift/drag/stall modeling, safe landing detection
+- **Runway start** — spawn directly at SFO runway 28L threshold
+- **Static site** — runs entirely client-side, deploy to GitHub Pages
 
-## Deploying to GitHub Pages
+## Quick Start
 
-1. Push this repo to GitHub.
-2. In the repo's Settings → Pages, set the source to the `main` branch, root
-   folder.
-3. Once the `*.github.io` URL is live, go to the
-   [Cesium ion access tokens page](https://ion.cesium.com/tokens) and
-   restrict the token in `js/config.js` to that URL — it's a public,
-   client-visible token embedded in a static site, so scoping by referrer is
-   the only protection available for it.
+### Local Testing
+```bash
+python3 -m http.server 4507
+# Then open http://localhost:4507 on your phone
+# or in a Cardboard viewer app
+```
 
-## Layout
+### Controls
+- **W/S** — throttle up/down
+- **Arrow keys** — pitch/roll
+- **A/D** — yaw left/right
+- **R** — reset after crash
+- **Drag screen** — look around (if head tracking unavailable)
+- **Recenter view** button — reset head tracking origin
 
-- `index.html`, `style.css`, `js/` — the current simulator.
-- `archive/` — earlier standalone prototypes (a stereo-Cesium performance
-  spike and a hand-tracking input spike) kept for reference; not part of the
-  deployed app.
+## Deploy to GitHub Pages
 
-## Controls
+1. Push this repo to GitHub
+2. Settings → Pages → Source = `main` branch, root folder
+3. Once live at `yourname.github.io/sbs`, restrict the Cesium ion token:
+   - Go to https://ion.cesium.com/tokens
+   - Find the token in `js/config.js`
+   - Add your GitHub Pages domain to the allowed referrers
+   - This prevents token abuse from other sites
 
-Keyboard fallback: W/S throttle, arrow keys pitch/roll, A/D yaw, R to reset
-after a crash. Drag the screen to look around if device orientation isn't
-available.
+## Architecture
+
+- `index.html` — VR UI, tutorial overlay
+- `style.css` — HUD styling
+- `js/main.js` — flight loop, stereo rendering, input handling
+- `js/physics.js` — aircraft flight model (mass, thrust, lift/drag curves)
+- `js/controls.js` — keyboard input
+- `js/look-controls.js` — head tracking & drag-to-look
+- `js/hand-tracking-controls.js` — MediaPipe hand tracking (fallback, not used in main flow)
+- `js/terrain.js` — Cesium ion terrain/imagery loading via 3D Tiles
+- `js/config.js` — location & Cesium token (update for your deployment)
+- `archive/` — Phase 0 & 1 prototypes (reference only)
