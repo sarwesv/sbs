@@ -1,60 +1,51 @@
 import * as THREE from "three";
 import { Aircraft, AircraftConfig } from "./physics.js";
 import { KeyboardControls } from "./controls.js";
-import { ChaseCamera } from "./chase-camera.js";
+import { LookControls } from "./look-controls.js";
 import { createTerrain } from "./terrain.js";
 import CONFIG from "./config.js";
 
-// Chase-camera desktop flight sim (not VR cockpit view)
+// Flight sim: cockpit VR view, real-world terrain, multiple aircraft
 const GROUND_HEIGHT = 0;
-const SPAWN_POSITION = new THREE.Vector3(0, 0, 40);
-const SPAWN_HEADING = 0;
-
-// Inline aircraft definition for simplicity (catalog import was failing)
-function buildSimplePlaneMesh() {
-  const group = new THREE.Group();
-  const fuselage = new THREE.Mesh(new THREE.ConeGeometry(0.9, 6, 12), new THREE.MeshStandardMaterial({ color: 0xd94f4f }));
-  fuselage.rotation.x = Math.PI / 2;
-  group.add(fuselage);
-  const wings = new THREE.Mesh(new THREE.BoxGeometry(8, 0.15, 1.4), new THREE.MeshStandardMaterial({ color: 0x9a9a9a }));
-  wings.position.z = 0.3;
-  group.add(wings);
-  return group;
-}
-
-const selectedAircraftConfig = new AircraftConfig();
-const selectedAircraftName = "Cessna 172";
+const SPAWN_POSITION = new THREE.Vector3(0, 0, 0); // Start at runway threshold
+const SPAWN_HEADING = 0; // 0° = north
+const EYE_SEPARATION_METERS = 0.064;
+const COCKPIT_OFFSET_LOCAL = new THREE.Vector3(0, 1.1, -1.5);
 
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(0x87ceeb);
 scene.fog = new THREE.Fog(0x87ceeb, 500, 4000);
 
-const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 10000);
+const camera = new THREE.PerspectiveCamera(80, window.innerWidth / window.innerHeight, 0.1, 5000);
+const stereoCamera = new THREE.StereoCamera();
+stereoCamera.eyeSep = EYE_SEPARATION_METERS;
 
 const renderer = new THREE.WebGLRenderer({ antialias: true });
 renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 renderer.setSize(window.innerWidth, window.innerHeight);
 document.getElementById("scene-container").appendChild(renderer.domElement);
 
+let stereoEnabled = false;
+
 function updateCameraAspect() {
-  camera.aspect = window.innerWidth / window.innerHeight;
+  const width = window.innerWidth;
+  const height = window.innerHeight;
+  camera.aspect = (stereoEnabled ? width / 2 : width) / height;
   camera.updateProjectionMatrix();
-  renderer.setSize(window.innerWidth, window.innerHeight);
+  renderer.setSize(width, height);
 }
 
 window.addEventListener("resize", updateCameraAspect);
+updateCameraAspect();
 
-// Lighting: cheap two-light setup, good enough until the polish pass.
+// Lighting
 scene.add(new THREE.HemisphereLight(0xffffff, 0x444444, 1.2));
 const sun = new THREE.DirectionalLight(0xffffff, 1.5);
 sun.position.set(300, 400, 200);
 scene.add(sun);
 
-// Flat placeholder ground/runway, used only when no Cesium ion token is
-// configured (see config.js) — same offline-fallback pattern as the Phase 0
-// spike. With a token, real terrain (below) replaces this entirely.
+// Terrain: real world via Cesium ion, or flat fallback
 let tiles = null;
-
 if (!CONFIG.ionToken) {
   const ground = new THREE.Mesh(
     new THREE.PlaneGeometry(20000, 20000),
@@ -91,19 +82,50 @@ if (!CONFIG.ionToken) {
   scene.add(tiles.group);
 }
 
-// Aircraft: now visible in chase view (external camera)
-const aircraftMesh = buildSimplePlaneMesh();
-aircraftMesh.visible = true;
+// Aircraft
+function buildAircraftMesh() {
+  const group = new THREE.Group();
+  const bodyMaterial = new THREE.MeshStandardMaterial({ color: 0xd94f4f });
+  const wingMaterial = new THREE.MeshStandardMaterial({ color: 0x9a9a9a });
+
+  const fuselage = new THREE.Mesh(new THREE.ConeGeometry(0.9, 6, 12), bodyMaterial);
+  fuselage.rotation.x = Math.PI / 2;
+  group.add(fuselage);
+
+  const wings = new THREE.Mesh(new THREE.BoxGeometry(8, 0.15, 1.4), wingMaterial);
+  wings.position.z = 0.3;
+  group.add(wings);
+
+  const tailWing = new THREE.Mesh(new THREE.BoxGeometry(3, 0.1, 0.8), wingMaterial);
+  tailWing.position.z = 2.8;
+  group.add(tailWing);
+
+  const tailFin = new THREE.Mesh(new THREE.BoxGeometry(0.1, 1.2, 1), wingMaterial);
+  tailFin.position.set(0, 0.6, 2.8);
+  group.add(tailFin);
+
+  return group;
+}
+
+const aircraftMesh = buildAircraftMesh();
+aircraftMesh.visible = false; // cockpit view only
 scene.add(aircraftMesh);
 
-const config = selectedAircraftConfig;
+const config = new AircraftConfig();
 const aircraft = new Aircraft(config, SPAWN_POSITION, SPAWN_HEADING);
-
-// Chase camera controller
-const chaseCamera = new ChaseCamera(renderer.domElement, camera);
 
 const keyboardControls = new KeyboardControls();
 let activeControls = keyboardControls;
+
+const lookControls = new LookControls(renderer.domElement);
+
+function updateCockpitCamera() {
+  const worldPosition = COCKPIT_OFFSET_LOCAL.clone()
+    .applyQuaternion(aircraft.orientation)
+    .add(aircraft.position);
+  camera.position.copy(worldPosition);
+  camera.quaternion.copy(aircraft.orientation).multiply(lookControls.headQuaternion);
+}
 
 const hud = {
   status: document.getElementById("status-value"),
@@ -112,7 +134,6 @@ const hud = {
   throttle: document.getElementById("throttle-value"),
   heading: document.getElementById("heading-value"),
   inputMode: document.getElementById("input-mode-value"),
-  aircraft: document.getElementById("aircraft-value"),
 };
 
 function updateHud(controlsState) {
@@ -120,15 +141,15 @@ function updateHud(controlsState) {
   hud.airspeed.textContent = `${(speedMs * 1.94384).toFixed(0)} kt`;
   hud.altitude.textContent = `${aircraft.position.y.toFixed(0)} m`;
   hud.throttle.textContent = `${(controlsState.throttle * 100).toFixed(0)}%`;
-  hud.aircraft.textContent = selectedAircraftName;
   hud.inputMode.textContent = "keyboard";
 
   const euler = new THREE.Euler().setFromQuaternion(aircraft.orientation, "YXZ");
   const headingDeg = THREE.MathUtils.radToDeg(euler.y);
   hud.heading.textContent = `${((headingDeg + 360) % 360).toFixed(0)}°`;
 
-  // Chase view: no crash detection (safe for free-flying)
-  if (aircraft.onGround) {
+  if (aircraft.crashed) {
+    hud.status.textContent = "CRASHED — press R to reset";
+  } else if (aircraft.onGround) {
     hud.status.textContent = "ON GROUND";
   } else {
     hud.status.textContent = "AIRBORNE";
@@ -136,12 +157,29 @@ function updateHud(controlsState) {
 }
 
 function renderFrame() {
-  renderer.setViewport(0, 0, window.innerWidth, window.innerHeight);
-  renderer.setScissorTest(false);
-  renderer.render(scene, camera);
+  if (!stereoEnabled) {
+    renderer.setViewport(0, 0, window.innerWidth, window.innerHeight);
+    renderer.setScissorTest(false);
+    renderer.render(scene, camera);
+    return;
+  }
+
+  stereoCamera.update(camera);
+  const width = window.innerWidth;
+  const height = window.innerHeight;
+
+  renderer.setScissorTest(true);
+
+  renderer.setViewport(0, 0, width / 2, height);
+  renderer.setScissor(0, 0, width / 2, height);
+  renderer.render(scene, stereoCamera.cameraL);
+
+  renderer.setViewport(width / 2, 0, width / 2, height);
+  renderer.setScissor(width / 2, 0, width / 2, height);
+  renderer.render(scene, stereoCamera.cameraR);
 }
 
-let flightStarted = true; // chase view starts flying immediately
+let flightStarted = false;
 let lastFrameTime = performance.now();
 
 function animate() {
@@ -153,16 +191,14 @@ function animate() {
     aircraft.reset(SPAWN_POSITION, SPAWN_HEADING);
   }
 
-  const dt = flightStarted ? Math.min(rawDt, 0.1) : 0; // clamp to avoid huge steps after a tab is backgrounded
+  const dt = flightStarted ? Math.min(rawDt, 0.1) : 0;
   const controlsState = activeControls.getState(dt);
   aircraft.update(dt, controlsState, GROUND_HEIGHT);
 
   aircraftMesh.position.copy(aircraft.position);
   aircraftMesh.quaternion.copy(aircraft.orientation);
 
-  // Update chase camera to follow aircraft
-  chaseCamera.update(aircraft.position, aircraft.orientation);
-
+  updateCockpitCamera();
   updateHud(controlsState);
 
   if (tiles) {
@@ -176,7 +212,39 @@ function animate() {
   requestAnimationFrame(animate);
 }
 
-// Start flying immediately in chase view (no VR tutorial)
-let flightStarted = true;
-let lastFrameTime = performance.now();
 requestAnimationFrame(animate);
+
+// Tutorial / start flow
+const TUTORIAL_SEEN_KEY = "sbs_tutorial_seen";
+const tutorialOverlay = document.getElementById("tutorial-overlay");
+const startButton = document.getElementById("start-flying-button");
+const recenterButton = document.getElementById("recenter-button");
+const reopenTutorialButton = document.getElementById("reopen-tutorial-button");
+
+if (localStorage.getItem(TUTORIAL_SEEN_KEY)) {
+  document.getElementById("tutorial-body").classList.add("tutorial-body-returning");
+}
+
+async function startFlying() {
+  startButton.disabled = true;
+
+  // Device orientation permission (iOS 13+)
+  const orientationGranted = await lookControls.enableDeviceOrientation();
+  if (!orientationGranted) {
+    // Fallback to drag-to-look
+  }
+
+  localStorage.setItem(TUTORIAL_SEEN_KEY, "1");
+  tutorialOverlay.classList.add("hidden");
+  stereoEnabled = true;
+  updateCameraAspect();
+  flightStarted = true;
+  lastFrameTime = performance.now();
+}
+
+startButton.addEventListener("click", startFlying);
+recenterButton.addEventListener("click", () => lookControls.recenter());
+reopenTutorialButton.addEventListener("click", () => {
+  tutorialOverlay.classList.remove("hidden");
+  startButton.disabled = false;
+});
