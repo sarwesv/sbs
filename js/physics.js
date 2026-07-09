@@ -132,7 +132,6 @@ export class Aircraft {
 
     const forward = this.forward;
     const up = this.up;
-    const speed = this.velocity.length();
     const velocityDir = speed > 0.01 ? this.velocity.clone().normalize() : forward.clone();
 
     // Angle of attack: signed angle between the nose and the velocity
