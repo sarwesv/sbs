@@ -3,6 +3,7 @@ import { Aircraft, AircraftConfig } from "./physics.js";
 import { KeyboardControls } from "./controls.js";
 import { LookControls } from "./look-controls.js";
 import { createTerrain } from "./terrain.js";
+import { CockpitHUD } from "./cockpit-hud.js";
 import CONFIG from "./config.js";
 
 // Flight sim: cockpit VR view, real-world terrain, multiple aircraft
@@ -35,7 +36,12 @@ function updateCameraAspect() {
   renderer.setSize(width, height);
 }
 
-window.addEventListener("resize", updateCameraAspect);
+function handleResize() {
+  updateCameraAspect();
+  cockpitHUD.resize(window.innerWidth, window.innerHeight);
+}
+
+window.addEventListener("resize", handleResize);
 updateCameraAspect();
 
 // Lighting
@@ -119,6 +125,10 @@ let activeControls = keyboardControls;
 
 const lookControls = new LookControls(renderer.domElement);
 
+// Cockpit HUD with instruments
+const sceneContainer = document.getElementById("scene-container");
+const cockpitHUD = new CockpitHUD(sceneContainer, window.innerWidth, window.innerHeight);
+
 function updateCockpitCamera() {
   const worldPosition = COCKPIT_OFFSET_LOCAL.clone()
     .applyQuaternion(aircraft.orientation)
@@ -200,6 +210,21 @@ function animate() {
 
   updateCockpitCamera();
   updateHud(controlsState);
+
+  // Calculate pitch and roll for cockpit HUD
+  const euler = new THREE.Euler().setFromQuaternion(aircraft.orientation, "YXZ");
+  const pitch = euler.x;
+  const roll = euler.z;
+  const headingDeg = THREE.MathUtils.radToDeg(euler.y);
+  const speedMs = aircraft.velocity.length();
+  const airspeedKt = speedMs * 1.94384;
+  const altitudeM = aircraft.position.y;
+
+  // Update cockpit HUD telemetry
+  if (flightStarted && stereoEnabled) {
+    cockpitHUD.updateTelemetry(airspeedKt, altitudeM, headingDeg, pitch, roll);
+    cockpitHUD.render();
+  }
 
   if (tiles) {
     tiles.setCamera(camera);
