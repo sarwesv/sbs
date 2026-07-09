@@ -55,6 +55,12 @@ export class CockpitHUD {
     const roll = this.telemetry.roll;
 
     this.ctx.save();
+
+    // Clip to circle to prevent content from showing outside
+    this.ctx.beginPath();
+    this.ctx.arc(x, y, size, 0, Math.PI * 2);
+    this.ctx.clip();
+
     this.ctx.translate(x, y);
     this.ctx.rotate(roll);
 
@@ -68,21 +74,20 @@ export class CockpitHUD {
     this.ctx.strokeStyle = "#0f0";
     this.ctx.lineWidth = 3;
     this.ctx.beginPath();
-    this.ctx.moveTo(-size, -pitch * 30);
-    this.ctx.lineTo(size, -pitch * 30);
+    this.ctx.moveTo(-size * 1.5, -pitch * 30);
+    this.ctx.lineTo(size * 1.5, -pitch * 30);
     this.ctx.stroke();
 
-    // Pitch ladder - transparent with just numbers
+    // Pitch ladder - constrained within circle
     this.ctx.strokeStyle = "#0f0";
     this.ctx.lineWidth = 1;
-    this.ctx.font = "bold 12px monospace";
+    this.ctx.font = "bold 11px monospace";
     this.ctx.fillStyle = "#0f0";
     this.ctx.textAlign = "center";
 
     for (let i = -30; i <= 30; i += 5) {
       if (i === 0) continue;
       const y_offset = -pitch * 30 + i * 6;
-      if (Math.abs(y_offset) > size) continue;
 
       const mark_width = i % 10 === 0 ? 50 : 30;
       this.ctx.beginPath();
@@ -91,8 +96,11 @@ export class CockpitHUD {
       this.ctx.stroke();
 
       if (i % 10 === 0 && i !== 0) {
-        this.ctx.fillText(i, -65, y_offset + 4);
-        this.ctx.fillText(i, 65, y_offset + 4);
+        // Only draw numbers if they fit within circle bounds
+        if (Math.abs(y_offset) < size - 20) {
+          this.ctx.fillText(i, -60, y_offset + 4);
+          this.ctx.fillText(i, 60, y_offset + 4);
+        }
       }
     }
 
@@ -105,7 +113,7 @@ export class CockpitHUD {
 
     this.ctx.restore();
 
-    // Circular frame
+    // Circular frame (drawn after clipping restored)
     this.ctx.strokeStyle = "#0f0";
     this.ctx.lineWidth = 2;
     this.ctx.beginPath();
