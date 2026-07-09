@@ -1,8 +1,7 @@
-// Realistic flight physics using Cannon.js rigid body dynamics
-// Implements proper aerodynamic modeling like GeoFS
+// Realistic flight physics with proper aerodynamic modeling
+// Implements GeoFS-like flight dynamics without external physics engine
 
 import * as THREE from "three";
-import * as CANNON from "cannon-es";
 
 const GRAVITY = 9.81;
 const AIR_DENSITY = 1.225;
