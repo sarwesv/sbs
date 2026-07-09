@@ -315,13 +315,16 @@ const startButton = document.getElementById("start-flying-button");
 const recenterButton = document.getElementById("recenter-button");
 const reopenTutorialButton = document.getElementById("reopen-tutorial-button");
 
+console.log("Tutorial elements found:", { tutorialOverlay, startButton, recenterButton, reopenTutorialButton });
+
 if (localStorage.getItem(TUTORIAL_SEEN_KEY)) {
-  document.getElementById("tutorial-body").classList.add("tutorial-body-returning");
+  const tutorialBody = document.getElementById("tutorial-body");
+  if (tutorialBody) tutorialBody.classList.add("tutorial-body-returning");
 }
 
 async function startFlying() {
   console.log("START FLYING CLICKED");
-  startButton.disabled = true;
+  if (startButton) startButton.disabled = true;
 
   // Device orientation permission (iOS 13+)
   const orientationGranted = await lookControls.enableDeviceOrientation();
@@ -330,7 +333,7 @@ async function startFlying() {
   }
 
   localStorage.setItem(TUTORIAL_SEEN_KEY, "1");
-  tutorialOverlay.classList.add("hidden");
+  if (tutorialOverlay) tutorialOverlay.classList.add("hidden");
 
   // Hide HTML HUD elements when stereo mode enabled (canvas HUD takes over)
   const hud = document.getElementById("hud");
@@ -345,9 +348,24 @@ async function startFlying() {
   lastFrameTime = performance.now();
 }
 
-startButton.addEventListener("click", startFlying);
-recenterButton.addEventListener("click", () => lookControls.recenter());
-reopenTutorialButton.addEventListener("click", () => {
-  tutorialOverlay.classList.remove("hidden");
-  startButton.disabled = false;
-});
+if (startButton) {
+  console.log("Attaching click listener to Start Flying button");
+  startButton.addEventListener("click", startFlying);
+} else {
+  console.error("Start Flying button not found!");
+}
+
+if (recenterButton) {
+  recenterButton.addEventListener("click", () => lookControls.recenter());
+} else {
+  console.error("Recenter button not found!");
+}
+
+if (reopenTutorialButton) {
+  reopenTutorialButton.addEventListener("click", () => {
+    if (tutorialOverlay) tutorialOverlay.classList.remove("hidden");
+    if (startButton) startButton.disabled = false;
+  });
+} else {
+  console.error("Reopen tutorial button not found!");
+}
