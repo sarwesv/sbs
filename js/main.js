@@ -387,20 +387,31 @@ if (reopenTutorialButton) {
 
 // Aircraft selector UI
 const aircraftButtonsContainer = document.getElementById("aircraft-buttons");
+console.log("Aircraft buttons container:", aircraftButtonsContainer);
 if (aircraftButtonsContainer) {
   Object.entries(AIRCRAFT_MODELS).forEach(([key, model]) => {
     const btn = document.createElement("button");
     btn.className = "aircraft-btn" + (key === DEFAULT_AIRCRAFT ? " active" : "");
     btn.textContent = model.name;
     btn.title = model.description;
-    btn.addEventListener("click", () => {
+    btn.style.pointerEvents = "auto"; // Ensure clickable
+    btn.addEventListener("click", (e) => {
+      console.log("Aircraft button clicked:", key, "flightStarted:", flightStarted);
+      e.preventDefault();
+      e.stopPropagation();
       // Only allow switching when not flying
       if (!flightStarted) {
+        console.log("Switching to:", model.name);
         switchAircraft(key);
         document.querySelectorAll(".aircraft-btn").forEach(b => b.classList.remove("active"));
         btn.classList.add("active");
+      } else {
+        console.log("Cannot switch during flight");
       }
     });
     aircraftButtonsContainer.appendChild(btn);
+    console.log("Added aircraft button:", model.name);
   });
+} else {
+  console.error("Aircraft buttons container not found!");
 }
