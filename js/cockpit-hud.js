@@ -1,4 +1,4 @@
-// Cockpit HUD: artificial horizon, speed tape, altitude tape, heading tape
+// Realistic F-16 style HUD: artificial horizon, speed tape, altitude tape, heading tape
 // Rendered as canvas overlay on top of 3D scene
 
 export class CockpitHUD {
@@ -41,238 +41,316 @@ export class CockpitHUD {
     this.ctx.fillStyle = "rgba(0, 0, 0, 0)";
     this.ctx.fillRect(0, 0, w, h);
 
-    // Draw main instrument frame (glass cockpit style)
+    // Draw instruments (F-16 style HUD layout)
+    this._drawSpeedTape(60, centerY);
+    this._drawAltitudeTape(w - 60, centerY);
     this._drawArtificialHorizon(centerX, centerY);
-    this._drawSpeedTape(50, centerY);
-    this._drawAltitudeTape(w - 50, centerY);
-    this._drawHeadingTape(centerX, 60);
-    this._drawVSI(w - 120, centerY);
+    this._drawHeadingTape(centerX, h - 80);
+    this._drawVSI(w - 120, centerY - 180);
   }
 
   _drawArtificialHorizon(x, y) {
-    const size = 150;
+    const size = 120;
     const pitch = this.telemetry.pitch;
     const roll = this.telemetry.roll;
 
-    // Sky background
-    this.ctx.fillStyle = "#87ceeb";
-    this.ctx.fillRect(x - size, y - size, size * 2, size * 2);
-
-    // Ground background
-    this.ctx.fillStyle = "#8b7355";
-    this.ctx.fillRect(x - size, y, size * 2, size);
-
-    // Horizon line (offset by pitch)
     this.ctx.save();
     this.ctx.translate(x, y);
     this.ctx.rotate(roll);
 
-    this.ctx.strokeStyle = "#fff";
-    this.ctx.lineWidth = 2;
+    // Sky (transparent blue area)
+    this.ctx.fillStyle = "rgba(135, 206, 235, 0.15)";
     this.ctx.beginPath();
-    this.ctx.moveTo(-size, -pitch * 20);
-    this.ctx.lineTo(size, -pitch * 20);
+    this.ctx.arc(0, 0, size, 0, Math.PI * 2);
+    this.ctx.fill();
+
+    // Horizon line
+    this.ctx.strokeStyle = "#0f0";
+    this.ctx.lineWidth = 3;
+    this.ctx.beginPath();
+    this.ctx.moveTo(-size, -pitch * 30);
+    this.ctx.lineTo(size, -pitch * 30);
     this.ctx.stroke();
 
-    // Pitch reference marks
-    this.ctx.strokeStyle = "#fff";
+    // Pitch ladder - transparent with just numbers
+    this.ctx.strokeStyle = "#0f0";
     this.ctx.lineWidth = 1;
-    for (let i = -5; i <= 5; i++) {
+    this.ctx.font = "bold 12px monospace";
+    this.ctx.fillStyle = "#0f0";
+    this.ctx.textAlign = "center";
+
+    for (let i = -30; i <= 30; i += 5) {
       if (i === 0) continue;
-      const y_offset = -pitch * 20 + i * 20;
-      const mark_width = i % 2 === 0 ? 30 : 15;
+      const y_offset = -pitch * 30 + i * 6;
+      if (Math.abs(y_offset) > size) continue;
+
+      const mark_width = i % 10 === 0 ? 50 : 30;
       this.ctx.beginPath();
       this.ctx.moveTo(-mark_width / 2, y_offset);
       this.ctx.lineTo(mark_width / 2, y_offset);
       this.ctx.stroke();
+
+      if (i % 10 === 0 && i !== 0) {
+        this.ctx.fillText(i, -65, y_offset + 4);
+        this.ctx.fillText(i, 65, y_offset + 4);
+      }
     }
 
-    // Center dot
-    this.ctx.fillStyle = "#fff";
+    // Center reference point
+    this.ctx.strokeStyle = "#0f0";
+    this.ctx.lineWidth = 2;
     this.ctx.beginPath();
-    this.ctx.arc(0, 0, 4, 0, Math.PI * 2);
-    this.ctx.fill();
+    this.ctx.arc(0, 0, 8, 0, Math.PI * 2);
+    this.ctx.stroke();
 
     this.ctx.restore();
 
-    // Dial frame
-    this.ctx.strokeStyle = "#fff";
+    // Circular frame
+    this.ctx.strokeStyle = "#0f0";
     this.ctx.lineWidth = 2;
     this.ctx.beginPath();
     this.ctx.arc(x, y, size, 0, Math.PI * 2);
     this.ctx.stroke();
 
-    // Roll indicator (top)
-    this.ctx.fillStyle = "#fff";
-    this.ctx.save();
-    this.ctx.translate(x, y - size - 10);
-    this.ctx.rotate(roll);
-    this.ctx.fillRect(-3, 0, 6, 8);
-    this.ctx.restore();
+    // Roll reference marks
+    this.ctx.strokeStyle = "#0f0";
+    this.ctx.lineWidth = 1;
+    const rollScale = size + 15;
+    for (let angle = 0; angle < 360; angle += 15) {
+      const rad = (angle * Math.PI) / 180;
+      const fromX = x + Math.cos(rad) * (size + 5);
+      const fromY = y + Math.sin(rad) * (size + 5);
+      const toX = x + Math.cos(rad) * rollScale;
+      const toY = y + Math.sin(rad) * rollScale;
+      this.ctx.beginPath();
+      this.ctx.moveTo(fromX, fromY);
+      this.ctx.lineTo(toX, toY);
+      this.ctx.stroke();
+    }
+
+    // Roll pointer (top)
+    this.ctx.fillStyle = "#0f0";
+    const rollRad = (this.telemetry.roll * 180) / Math.PI;
+    const pointerX = x + Math.sin(rollRad) * (size + 25);
+    const pointerY = y - Math.cos(rollRad) * (size + 25);
+    this.ctx.beginPath();
+    this.ctx.moveTo(pointerX - 5, pointerY - 3);
+    this.ctx.lineTo(pointerX + 5, pointerY - 3);
+    this.ctx.lineTo(pointerX, pointerY + 5);
+    this.ctx.closePath();
+    this.ctx.fill();
   }
 
   _drawSpeedTape(x, y) {
-    const tapeHeight = 200;
-    const tapeWidth = 40;
+    const tapeHeight = 250;
+    const tapeWidth = 50;
     const speed = this.telemetry.airspeed;
 
     // Tape background
-    this.ctx.fillStyle = "rgba(0, 0, 0, 0.7)";
+    this.ctx.fillStyle = "rgba(0, 0, 0, 0.8)";
+    this.ctx.strokeStyle = "#0f0";
+    this.ctx.lineWidth = 2;
     this.ctx.fillRect(x - tapeWidth / 2, y - tapeHeight / 2, tapeWidth, tapeHeight);
+    this.ctx.strokeRect(x - tapeWidth / 2, y - tapeHeight / 2, tapeWidth, tapeHeight);
 
     // Draw speed markings
-    this.ctx.strokeStyle = "#fff";
-    this.ctx.fillStyle = "#fff";
-    this.ctx.font = "10px monospace";
+    this.ctx.strokeStyle = "#0f0";
+    this.ctx.fillStyle = "#0f0";
+    this.ctx.font = "bold 12px monospace";
     this.ctx.textAlign = "right";
-    this.ctx.lineWidth = 1;
+    this.ctx.lineWidth = 2;
 
-    for (let i = 0; i <= 200; i += 10) {
-      const offset = ((i - speed) / 10) * 10;
-      if (Math.abs(offset) > tapeHeight / 2) continue;
+    for (let i = 0; i <= 300; i += 10) {
+      const offset = ((i - speed) / 10) * 8;
+      if (Math.abs(offset) > tapeHeight / 2 + 10) continue;
 
-      const mark_width = i % 20 === 0 ? 8 : 4;
+      const mark_width = i % 20 === 0 ? 12 : 6;
       this.ctx.beginPath();
       this.ctx.moveTo(x + tapeWidth / 2 - mark_width, y + offset);
       this.ctx.lineTo(x + tapeWidth / 2, y + offset);
       this.ctx.stroke();
 
       if (i % 20 === 0) {
-        this.ctx.fillText(i, x - 5, y + offset + 3);
+        this.ctx.fillText(i, x - 8, y + offset + 4);
       }
     }
 
-    // Center pointer
-    this.ctx.fillStyle = "#00ff00";
+    // Center pointer (highlighted box)
+    this.ctx.fillStyle = "rgba(0, 255, 0, 0.2)";
+    this.ctx.strokeStyle = "#0f0";
+    this.ctx.lineWidth = 2;
+    this.ctx.fillRect(x - tapeWidth / 2, y - 10, tapeWidth, 20);
+    this.ctx.strokeRect(x - tapeWidth / 2, y - 10, tapeWidth, 20);
+
+    // Center arrow
+    this.ctx.fillStyle = "#0f0";
     this.ctx.beginPath();
-    this.ctx.moveTo(x - tapeWidth / 2 - 5, y - 5);
-    this.ctx.lineTo(x - tapeWidth / 2 - 5, y + 5);
-    this.ctx.lineTo(x - tapeWidth / 2 + 5, y);
+    this.ctx.moveTo(x - tapeWidth / 2 - 12, y - 6);
+    this.ctx.lineTo(x - tapeWidth / 2 - 12, y + 6);
+    this.ctx.lineTo(x - tapeWidth / 2 - 4, y);
     this.ctx.closePath();
     this.ctx.fill();
 
     // Label
-    this.ctx.fillStyle = "#0f0";
-    this.ctx.font = "bold 11px monospace";
+    this.ctx.font = "bold 13px monospace";
     this.ctx.textAlign = "center";
-    this.ctx.fillText("KT", x, y + tapeHeight / 2 + 15);
+    this.ctx.fillText("KT", x, y + tapeHeight / 2 + 25);
   }
 
   _drawAltitudeTape(x, y) {
-    const tapeHeight = 200;
-    const tapeWidth = 40;
+    const tapeHeight = 250;
+    const tapeWidth = 50;
     const altitude = this.telemetry.altitude;
 
     // Tape background
-    this.ctx.fillStyle = "rgba(0, 0, 0, 0.7)";
+    this.ctx.fillStyle = "rgba(0, 0, 0, 0.8)";
+    this.ctx.strokeStyle = "#0f0";
+    this.ctx.lineWidth = 2;
     this.ctx.fillRect(x - tapeWidth / 2, y - tapeHeight / 2, tapeWidth, tapeHeight);
+    this.ctx.strokeRect(x - tapeWidth / 2, y - tapeHeight / 2, tapeWidth, tapeHeight);
 
     // Draw altitude markings
-    this.ctx.strokeStyle = "#fff";
-    this.ctx.fillStyle = "#fff";
-    this.ctx.font = "10px monospace";
+    this.ctx.strokeStyle = "#0f0";
+    this.ctx.fillStyle = "#0f0";
+    this.ctx.font = "bold 12px monospace";
     this.ctx.textAlign = "left";
-    this.ctx.lineWidth = 1;
+    this.ctx.lineWidth = 2;
 
-    for (let i = 0; i <= 3000; i += 100) {
-      const offset = ((i - altitude) / 100) * 10;
-      if (Math.abs(offset) > tapeHeight / 2) continue;
+    for (let i = 0; i <= 5000; i += 100) {
+      const offset = ((i - altitude) / 100) * 8;
+      if (Math.abs(offset) > tapeHeight / 2 + 10) continue;
 
-      const mark_width = i % 500 === 0 ? 8 : 4;
+      const mark_width = i % 500 === 0 ? 12 : 6;
       this.ctx.beginPath();
       this.ctx.moveTo(x - tapeWidth / 2, y + offset);
       this.ctx.lineTo(x - tapeWidth / 2 + mark_width, y + offset);
       this.ctx.stroke();
 
       if (i % 500 === 0) {
-        this.ctx.fillText(i / 100, x + 5, y + offset + 3);
+        this.ctx.fillText((i / 100).toFixed(0), x + 8, y + offset + 4);
       }
     }
 
-    // Center pointer
-    this.ctx.fillStyle = "#00ff00";
+    // Center pointer (highlighted box)
+    this.ctx.fillStyle = "rgba(0, 255, 0, 0.2)";
+    this.ctx.strokeStyle = "#0f0";
+    this.ctx.lineWidth = 2;
+    this.ctx.fillRect(x - tapeWidth / 2, y - 10, tapeWidth, 20);
+    this.ctx.strokeRect(x - tapeWidth / 2, y - 10, tapeWidth, 20);
+
+    // Center arrow
+    this.ctx.fillStyle = "#0f0";
     this.ctx.beginPath();
-    this.ctx.moveTo(x + tapeWidth / 2 + 5, y - 5);
-    this.ctx.lineTo(x + tapeWidth / 2 + 5, y + 5);
-    this.ctx.lineTo(x + tapeWidth / 2 - 5, y);
+    this.ctx.moveTo(x + tapeWidth / 2 + 12, y - 6);
+    this.ctx.lineTo(x + tapeWidth / 2 + 12, y + 6);
+    this.ctx.lineTo(x + tapeWidth / 2 + 4, y);
     this.ctx.closePath();
     this.ctx.fill();
 
     // Label
-    this.ctx.fillStyle = "#0f0";
-    this.ctx.font = "bold 11px monospace";
+    this.ctx.font = "bold 13px monospace";
     this.ctx.textAlign = "center";
-    this.ctx.fillText("M", x, y + tapeHeight / 2 + 15);
+    this.ctx.fillText("FT", x, y + tapeHeight / 2 + 25);
   }
 
   _drawHeadingTape(x, y) {
-    const tapeWidth = 200;
-    const tapeHeight = 30;
+    const tapeWidth = 280;
+    const tapeHeight = 40;
     const heading = this.telemetry.heading;
 
     // Tape background
-    this.ctx.fillStyle = "rgba(0, 0, 0, 0.7)";
+    this.ctx.fillStyle = "rgba(0, 0, 0, 0.8)";
+    this.ctx.strokeStyle = "#0f0";
+    this.ctx.lineWidth = 2;
     this.ctx.fillRect(x - tapeWidth / 2, y - tapeHeight / 2, tapeWidth, tapeHeight);
+    this.ctx.strokeRect(x - tapeWidth / 2, y - tapeHeight / 2, tapeWidth, tapeHeight);
 
     // Draw heading markings
-    this.ctx.strokeStyle = "#fff";
-    this.ctx.fillStyle = "#fff";
-    this.ctx.font = "9px monospace";
+    this.ctx.strokeStyle = "#0f0";
+    this.ctx.fillStyle = "#0f0";
+    this.ctx.font = "bold 11px monospace";
     this.ctx.textAlign = "center";
-    this.ctx.lineWidth = 1;
+    this.ctx.lineWidth = 2;
 
     for (let i = 0; i < 360; i += 10) {
       const offset = ((i - heading + 180) % 360 - 180) * (tapeWidth / 360);
       if (Math.abs(offset) > tapeWidth / 2) continue;
 
-      const mark_height = i % 30 === 0 ? 10 : 5;
+      const mark_height = i % 30 === 0 ? 14 : 7;
       this.ctx.beginPath();
       this.ctx.moveTo(x + offset, y - tapeHeight / 2);
       this.ctx.lineTo(x + offset, y - tapeHeight / 2 + mark_height);
       this.ctx.stroke();
 
       if (i % 30 === 0) {
-        this.ctx.fillText(i / 10, x + offset, y + tapeHeight / 2 - 2);
+        const dir = i === 0 ? "N" : i === 90 ? "E" : i === 180 ? "S" : i === 270 ? "W" : (i / 10).toFixed(0);
+        this.ctx.fillText(dir, x + offset, y + tapeHeight / 2 - 5);
       }
     }
 
     // Center pointer
-    this.ctx.fillStyle = "#ff0000";
+    this.ctx.fillStyle = "#0f0";
     this.ctx.beginPath();
-    this.ctx.moveTo(x - 5, y + tapeHeight / 2);
-    this.ctx.lineTo(x + 5, y + tapeHeight / 2);
-    this.ctx.lineTo(x, y + tapeHeight / 2 + 6);
+    this.ctx.moveTo(x - 6, y - tapeHeight / 2 - 8);
+    this.ctx.lineTo(x + 6, y - tapeHeight / 2 - 8);
+    this.ctx.lineTo(x, y - tapeHeight / 2);
     this.ctx.closePath();
     this.ctx.fill();
+
+    // Current heading display
+    this.ctx.fillStyle = "rgba(0, 255, 0, 0.2)";
+    this.ctx.strokeStyle = "#0f0";
+    this.ctx.fillRect(x - 30, y - 8, 60, 16);
+    this.ctx.strokeRect(x - 30, y - 8, 60, 16);
+    this.ctx.font = "bold 13px monospace";
+    this.ctx.fillStyle = "#0f0";
+    this.ctx.fillText((heading.toFixed(0)).padStart(3, "0"), x, y + 4);
   }
 
   _drawVSI(x, y) {
-    // Vertical Speed Indicator
-    const size = 30;
+    // Vertical Speed Indicator (Rate of climb)
+    const size = 50;
 
-    // Dial
-    this.ctx.fillStyle = "rgba(0, 0, 0, 0.7)";
+    // Dial background
+    this.ctx.fillStyle = "rgba(0, 0, 0, 0.8)";
     this.ctx.beginPath();
     this.ctx.arc(x, y, size, 0, Math.PI * 2);
     this.ctx.fill();
 
-    this.ctx.strokeStyle = "#fff";
-    this.ctx.lineWidth = 1;
+    this.ctx.strokeStyle = "#0f0";
+    this.ctx.lineWidth = 2;
     this.ctx.beginPath();
     this.ctx.arc(x, y, size, 0, Math.PI * 2);
     this.ctx.stroke();
 
-    // Center dot
-    this.ctx.fillStyle = "#fff";
+    // Scale marks (up/down)
+    this.ctx.strokeStyle = "#0f0";
+    this.ctx.lineWidth = 1;
+    for (let i = -8; i <= 8; i++) {
+      if (i === 0) continue;
+      const angle = (i / 8) * Math.PI * 0.8 - Math.PI * 0.4;
+      const fromR = size - 12;
+      const toR = size - 6;
+      const fromX = x + Math.cos(angle) * fromR;
+      const fromY = y + Math.sin(angle) * fromR;
+      const toX = x + Math.cos(angle) * toR;
+      const toY = y + Math.sin(angle) * toR;
+      this.ctx.beginPath();
+      this.ctx.moveTo(fromX, fromY);
+      this.ctx.lineTo(toX, toY);
+      this.ctx.stroke();
+    }
+
+    // Center reference
+    this.ctx.fillStyle = "#0f0";
     this.ctx.beginPath();
-    this.ctx.arc(x, y, 3, 0, Math.PI * 2);
+    this.ctx.arc(x, y, 4, 0, Math.PI * 2);
     this.ctx.fill();
 
     // Label
-    this.ctx.fillStyle = "#0f0";
-    this.ctx.font = "bold 9px monospace";
+    this.ctx.font = "bold 11px monospace";
     this.ctx.textAlign = "center";
-    this.ctx.fillText("VS", x, y + size + 12);
+    this.ctx.fillText("VSI", x, y + size + 15);
   }
 
   resize(width, height) {
