@@ -4,6 +4,7 @@ import { KeyboardControls } from "./controls.js";
 import { LookControls } from "./look-controls.js";
 import { createTerrain } from "./terrain.js";
 import { CockpitHUD } from "./cockpit-hud.js";
+import { AIRCRAFT_MODELS, DEFAULT_AIRCRAFT } from "./aircraft-models.js";
 import CONFIG from "./config.js";
 
 // Flight sim: cockpit VR view, real-world terrain, multiple aircraft
@@ -119,8 +120,22 @@ const aircraftMesh = buildAircraftMesh();
 aircraftMesh.visible = false; // cockpit view only
 scene.add(aircraftMesh);
 
-const config = new AircraftConfig();
-const aircraft = new Aircraft(config, SPAWN_POSITION, SPAWN_HEADING);
+// Aircraft configuration and selection
+let currentAircraftModel = DEFAULT_AIRCRAFT;
+let config = new AircraftConfig();
+Object.assign(config, AIRCRAFT_MODELS[currentAircraftModel]);
+let aircraft = new Aircraft(config, SPAWN_POSITION, SPAWN_HEADING);
+
+function switchAircraft(modelKey) {
+  if (!AIRCRAFT_MODELS[modelKey]) return;
+  currentAircraftModel = modelKey;
+  config = new AircraftConfig();
+  Object.assign(config, AIRCRAFT_MODELS[modelKey]);
+  aircraft = new Aircraft(config, SPAWN_POSITION, SPAWN_HEADING);
+  aircraftMesh.position.copy(aircraft.position);
+  aircraftMesh.quaternion.copy(aircraft.orientation);
+  console.log("Switched to:", AIRCRAFT_MODELS[modelKey].name);
+}
 
 const keyboardControls = new KeyboardControls();
 let activeControls = keyboardControls;
@@ -368,4 +383,24 @@ if (reopenTutorialButton) {
   });
 } else {
   console.error("Reopen tutorial button not found!");
+}
+
+// Aircraft selector UI
+const aircraftButtonsContainer = document.getElementById("aircraft-buttons");
+if (aircraftButtonsContainer) {
+  Object.entries(AIRCRAFT_MODELS).forEach(([key, model]) => {
+    const btn = document.createElement("button");
+    btn.className = "aircraft-btn" + (key === DEFAULT_AIRCRAFT ? " active" : "");
+    btn.textContent = model.name;
+    btn.title = model.description;
+    btn.addEventListener("click", () => {
+      // Only allow switching when not flying
+      if (!flightStarted) {
+        switchAircraft(key);
+        document.querySelectorAll(".aircraft-btn").forEach(b => b.classList.remove("active"));
+        btn.classList.add("active");
+      }
+    });
+    aircraftButtonsContainer.appendChild(btn);
+  });
 }
