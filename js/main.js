@@ -1,5 +1,5 @@
 import * as THREE from "three";
-import { Aircraft, AircraftConfig } from "./physics.js";
+import { RealisticAircraft, FlightPhysicsConfig } from "./flight-physics.js";
 import { KeyboardControls } from "./controls.js";
 import { LookControls } from "./look-controls.js";
 import { createTerrain } from "./terrain.js";
@@ -156,16 +156,16 @@ scene.add(aircraftMesh);
 
 // Aircraft configuration and selection
 let currentAircraftModel = DEFAULT_AIRCRAFT;
-let config = new AircraftConfig();
+let config = new FlightPhysicsConfig();
 Object.assign(config, AIRCRAFT_MODELS[currentAircraftModel]);
-let aircraft = new Aircraft(config, SPAWN_POSITION, SPAWN_HEADING);
+let aircraft = new RealisticAircraft(config, SPAWN_POSITION, SPAWN_HEADING);
 
 function switchAircraft(modelKey) {
   if (!AIRCRAFT_MODELS[modelKey]) return;
   currentAircraftModel = modelKey;
-  config = new AircraftConfig();
+  config = new FlightPhysicsConfig();
   Object.assign(config, AIRCRAFT_MODELS[modelKey]);
-  aircraft = new Aircraft(config, SPAWN_POSITION, SPAWN_HEADING);
+  aircraft = new RealisticAircraft(config, SPAWN_POSITION, SPAWN_HEADING);
   aircraftMesh.position.copy(aircraft.position);
   aircraftMesh.quaternion.copy(aircraft.orientation);
   console.log("Switched to:", AIRCRAFT_MODELS[modelKey].name);
@@ -277,9 +277,9 @@ function animate() {
     aircraft.reset(SPAWN_POSITION, SPAWN_HEADING);
   }
 
-  const dt = flightStarted ? Math.min(rawDt, 0.1) : 0;
+  const dt = flightStarted ? Math.min(rawDt, 0.05) : 0;
   const controlsState = activeControls.getState(dt);
-  aircraft.update(dt, controlsState, GROUND_HEIGHT);
+  aircraft.updatePhysics(dt, controlsState, GROUND_HEIGHT);
 
   aircraftMesh.position.copy(aircraft.position);
   aircraftMesh.quaternion.copy(aircraft.orientation);
