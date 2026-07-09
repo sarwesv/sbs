@@ -15,7 +15,7 @@ const RESET_KEY = "KeyR";
 export class KeyboardControls {
   constructor() {
     this.pressed = new Set();
-    this.throttle = 0.3; // default 30%
+    this.throttle = 0; // Start at 0 - no movement until user increases throttle
     this.resetRequested = false;
 
     window.addEventListener("keydown", (event) => {

@@ -5,6 +5,7 @@ import { LookControls } from "./look-controls.js";
 import { createTerrain } from "./terrain.js";
 import { CockpitHUD } from "./cockpit-hud.js";
 import { AIRCRAFT_MODELS, DEFAULT_AIRCRAFT } from "./aircraft-models.js";
+import { FLYING_LOCATIONS, DEFAULT_LOCATION } from "./locations.js";
 import CONFIG from "./config.js";
 
 // Flight sim: cockpit VR view, real-world terrain, multiple aircraft
@@ -53,6 +54,39 @@ const sun = new THREE.DirectionalLight(0xffffff, 1.5);
 sun.position.set(300, 400, 200);
 scene.add(sun);
 
+// Location management
+let currentLocation = DEFAULT_LOCATION;
+let terrainLocation = FLYING_LOCATIONS[DEFAULT_LOCATION];
+
+function switchLocation(locationKey) {
+  if (!FLYING_LOCATIONS[locationKey]) return;
+  currentLocation = locationKey;
+  terrainLocation = FLYING_LOCATIONS[locationKey];
+
+  // Update spawn position
+  SPAWN_POSITION.set(0, 0, 0);
+  aircraft.reset(SPAWN_POSITION, SPAWN_HEADING);
+
+  // Reload terrain at new location
+  if (tiles) {
+    scene.remove(tiles.group);
+    tiles = null;
+  }
+
+  if (CONFIG.ionToken) {
+    tiles = createTerrain({
+      ionToken: CONFIG.ionToken,
+      latitudeDeg: terrainLocation.latitude,
+      longitudeDeg: terrainLocation.longitude,
+      heightMeters: terrainLocation.height,
+      renderer,
+    });
+    scene.add(tiles.group);
+  }
+
+  console.log("Switched to location:", FLYING_LOCATIONS[locationKey].name);
+}
+
 // Terrain: real world via Cesium ion, or flat fallback
 let tiles = null;
 if (!CONFIG.ionToken) {
@@ -83,9 +117,9 @@ if (!CONFIG.ionToken) {
 } else {
   tiles = createTerrain({
     ionToken: CONFIG.ionToken,
-    latitudeDeg: CONFIG.location.latitudeDeg,
-    longitudeDeg: CONFIG.location.longitudeDeg,
-    heightMeters: CONFIG.location.heightMeters,
+    latitudeDeg: terrainLocation.latitude,
+    longitudeDeg: terrainLocation.longitude,
+    heightMeters: terrainLocation.height,
     renderer,
   });
   scene.add(tiles.group);
@@ -387,31 +421,60 @@ if (reopenTutorialButton) {
 
 // Aircraft selector UI
 const aircraftButtonsContainer = document.getElementById("aircraft-buttons");
-console.log("Aircraft buttons container:", aircraftButtonsContainer);
 if (aircraftButtonsContainer) {
   Object.entries(AIRCRAFT_MODELS).forEach(([key, model]) => {
     const btn = document.createElement("button");
     btn.className = "aircraft-btn" + (key === DEFAULT_AIRCRAFT ? " active" : "");
     btn.textContent = model.name;
     btn.title = model.description;
-    btn.style.pointerEvents = "auto"; // Ensure clickable
+    btn.style.pointerEvents = "auto";
     btn.addEventListener("click", (e) => {
-      console.log("Aircraft button clicked:", key, "flightStarted:", flightStarted);
       e.preventDefault();
       e.stopPropagation();
-      // Only allow switching when not flying
       if (!flightStarted) {
-        console.log("Switching to:", model.name);
         switchAircraft(key);
         document.querySelectorAll(".aircraft-btn").forEach(b => b.classList.remove("active"));
         btn.classList.add("active");
-      } else {
-        console.log("Cannot switch during flight");
       }
     });
     aircraftButtonsContainer.appendChild(btn);
-    console.log("Added aircraft button:", model.name);
   });
-} else {
-  console.error("Aircraft buttons container not found!");
+}
+
+// Location selector UI
+const locationListContainer = document.getElementById("location-list");
+const locationSearchInput = document.getElementById("location-search");
+
+function renderLocationList(filter = "") {
+  locationListContainer.innerHTML = "";
+  const filtered = Object.entries(FLYING_LOCATIONS).filter(([_, loc]) =>
+    loc.name.toLowerCase().includes(filter.toLowerCase()) ||
+    loc.description.toLowerCase().includes(filter.toLowerCase())
+  );
+
+  filtered.forEach(([key, location]) => {
+    const btn = document.createElement("div");
+    btn.className = "location-btn" + (key === currentLocation ? " active" : "");
+    btn.style.pointerEvents = "auto";
+    btn.innerHTML = `
+      <div class="location-btn-name">${location.name}</div>
+      <div class="location-btn-desc">${location.description}</div>
+    `;
+    btn.addEventListener("click", (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      if (!flightStarted) {
+        switchLocation(key);
+        renderLocationList(locationSearchInput.value);
+      }
+    });
+    locationListContainer.appendChild(btn);
+  });
+}
+
+if (locationSearchInput && locationListContainer) {
+  locationSearchInput.addEventListener("input", (e) => {
+    renderLocationList(e.target.value);
+  });
+  renderLocationList();
 }
