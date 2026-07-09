@@ -224,6 +224,7 @@ function animate() {
   aircraftMesh.quaternion.copy(aircraft.orientation);
 
   updateCockpitCamera();
+  camera.updateMatrixWorld(); // Ensure main camera is updated for terrain
   updateHud(controlsState);
 
   // Calculate pitch and roll for cockpit HUD
@@ -242,9 +243,11 @@ function animate() {
   }
 
   if (tiles) {
-    tiles.setCamera(camera);
-    tiles.setResolutionFromRenderer(camera, renderer);
-    camera.updateMatrixWorld();
+    // Use appropriate camera for terrain LOD based on stereo mode
+    const terrainCamera = stereoEnabled ? cameraL : camera;
+    tiles.setCamera(terrainCamera);
+    tiles.setResolutionFromRenderer(terrainCamera, renderer);
+    terrainCamera.updateMatrixWorld();
     tiles.update();
   }
 
