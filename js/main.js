@@ -421,6 +421,8 @@ if (reopenTutorialButton) {
 
 // Aircraft selector UI
 const aircraftButtonsContainer = document.getElementById("aircraft-buttons");
+console.log("=== AIRCRAFT SELECTOR ===");
+console.log("Container found:", !!aircraftButtonsContainer);
 if (aircraftButtonsContainer) {
   Object.entries(AIRCRAFT_MODELS).forEach(([key, model]) => {
     const btn = document.createElement("button");
@@ -428,44 +430,65 @@ if (aircraftButtonsContainer) {
     btn.textContent = model.name;
     btn.title = model.description;
     btn.style.pointerEvents = "auto";
+    btn.style.cursor = "pointer";
     btn.addEventListener("click", (e) => {
+      console.log("AIRCRAFT BUTTON CLICKED:", key);
       e.preventDefault();
       e.stopPropagation();
       if (!flightStarted) {
+        console.log("Switching aircraft to:", model.name);
         switchAircraft(key);
         document.querySelectorAll(".aircraft-btn").forEach(b => b.classList.remove("active"));
         btn.classList.add("active");
+      } else {
+        console.log("Cannot switch - flight started");
       }
     });
     aircraftButtonsContainer.appendChild(btn);
   });
+  console.log("Aircraft buttons added:", Object.keys(AIRCRAFT_MODELS).length);
+} else {
+  console.error("Aircraft buttons container NOT FOUND");
 }
 
 // Location selector UI
 const locationListContainer = document.getElementById("location-list");
 const locationSearchInput = document.getElementById("location-search");
+console.log("=== LOCATION SELECTOR ===");
+console.log("List container found:", !!locationListContainer);
+console.log("Search input found:", !!locationSearchInput);
 
 function renderLocationList(filter = "") {
+  if (!locationListContainer) {
+    console.error("Location list container not found!");
+    return;
+  }
   locationListContainer.innerHTML = "";
   const filtered = Object.entries(FLYING_LOCATIONS).filter(([_, loc]) =>
     loc.name.toLowerCase().includes(filter.toLowerCase()) ||
     loc.description.toLowerCase().includes(filter.toLowerCase())
   );
 
+  console.log("Rendering locations, filtered count:", filtered.length);
   filtered.forEach(([key, location]) => {
     const btn = document.createElement("div");
     btn.className = "location-btn" + (key === currentLocation ? " active" : "");
     btn.style.pointerEvents = "auto";
+    btn.style.cursor = "pointer";
     btn.innerHTML = `
       <div class="location-btn-name">${location.name}</div>
       <div class="location-btn-desc">${location.description}</div>
     `;
     btn.addEventListener("click", (e) => {
+      console.log("LOCATION BUTTON CLICKED:", key, location.name);
       e.preventDefault();
       e.stopPropagation();
       if (!flightStarted) {
+        console.log("Switching location to:", location.name);
         switchLocation(key);
-        renderLocationList(locationSearchInput.value);
+        renderLocationList(locationSearchInput ? locationSearchInput.value : "");
+      } else {
+        console.log("Cannot switch - flight started");
       }
     });
     locationListContainer.appendChild(btn);
@@ -474,7 +497,11 @@ function renderLocationList(filter = "") {
 
 if (locationSearchInput && locationListContainer) {
   locationSearchInput.addEventListener("input", (e) => {
+    console.log("Location search input:", e.target.value);
     renderLocationList(e.target.value);
   });
   renderLocationList();
+  console.log("Location selector initialized");
+} else {
+  console.error("Location selector NOT initialized - missing elements");
 }
