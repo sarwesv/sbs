@@ -179,6 +179,8 @@ function renderFrame() {
     return;
   }
 
+  console.log("STEREO RENDER:", stereoEnabled, flightStarted);
+
   // Sync left and right cameras with main camera (parallel projection, no convergence)
   const eyeSepHalf = EYE_SEPARATION_METERS / 2;
   const offset = new THREE.Vector3(eyeSepHalf, 0, 0).applyQuaternion(camera.quaternion);
@@ -318,6 +320,7 @@ if (localStorage.getItem(TUTORIAL_SEEN_KEY)) {
 }
 
 async function startFlying() {
+  console.log("START FLYING CLICKED");
   startButton.disabled = true;
 
   // Device orientation permission (iOS 13+)
@@ -337,6 +340,7 @@ async function startFlying() {
 
   flightStarted = true;
   stereoEnabled = true;
+  console.log("STEREO ENABLED:", stereoEnabled);
   updateCameraAspect();
   lastFrameTime = performance.now();
 }
