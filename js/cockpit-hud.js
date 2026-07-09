@@ -113,38 +113,37 @@ export class CockpitHUD {
 
     this.ctx.restore();
 
-    // Circular frame (drawn after clipping restored)
-    this.ctx.strokeStyle = "#0f0";
-    this.ctx.lineWidth = 2;
+    // Subtle circular frame
+    this.ctx.strokeStyle = "rgba(0, 255, 0, 0.4)";
+    this.ctx.lineWidth = 1;
     this.ctx.beginPath();
     this.ctx.arc(x, y, size, 0, Math.PI * 2);
     this.ctx.stroke();
 
-    // Roll reference marks
-    this.ctx.strokeStyle = "#0f0";
+    // Roll reference marks (subtle, only major marks)
+    this.ctx.strokeStyle = "rgba(0, 255, 0, 0.5)";
     this.ctx.lineWidth = 1;
-    const rollScale = size + 15;
-    for (let angle = 0; angle < 360; angle += 15) {
+    for (let angle = 0; angle < 360; angle += 30) {
       const rad = (angle * Math.PI) / 180;
-      const fromX = x + Math.cos(rad) * (size + 5);
-      const fromY = y + Math.sin(rad) * (size + 5);
-      const toX = x + Math.cos(rad) * rollScale;
-      const toY = y + Math.sin(rad) * rollScale;
+      const fromX = x + Math.cos(rad) * (size + 3);
+      const fromY = y + Math.sin(rad) * (size + 3);
+      const toX = x + Math.cos(rad) * (size + 10);
+      const toY = y + Math.sin(rad) * (size + 10);
       this.ctx.beginPath();
       this.ctx.moveTo(fromX, fromY);
       this.ctx.lineTo(toX, toY);
       this.ctx.stroke();
     }
 
-    // Roll pointer (top)
-    this.ctx.fillStyle = "#0f0";
+    // Roll pointer (subtle)
+    this.ctx.fillStyle = "rgba(0, 255, 0, 0.7)";
     const rollRad = (this.telemetry.roll * 180) / Math.PI;
-    const pointerX = x + Math.sin(rollRad) * (size + 25);
-    const pointerY = y - Math.cos(rollRad) * (size + 25);
+    const pointerX = x + Math.sin(rollRad) * (size + 12);
+    const pointerY = y - Math.cos(rollRad) * (size + 12);
     this.ctx.beginPath();
-    this.ctx.moveTo(pointerX - 5, pointerY - 3);
-    this.ctx.lineTo(pointerX + 5, pointerY - 3);
-    this.ctx.lineTo(pointerX, pointerY + 5);
+    this.ctx.moveTo(pointerX - 4, pointerY - 2);
+    this.ctx.lineTo(pointerX + 4, pointerY - 2);
+    this.ctx.lineTo(pointerX, pointerY + 4);
     this.ctx.closePath();
     this.ctx.fill();
   }
