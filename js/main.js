@@ -375,6 +375,12 @@ async function startFlying() {
   console.log("START FLYING CLICKED");
   if (startButton) startButton.disabled = true;
 
+  // Lock aircraft and location selection once flight starts
+  document.querySelectorAll(".aircraft-btn").forEach(b => b.style.pointerEvents = "none");
+  document.querySelectorAll(".location-btn").forEach(b => b.style.pointerEvents = "none");
+  const searchInput = document.getElementById("location-search");
+  if (searchInput) searchInput.style.pointerEvents = "none";
+
   // Device orientation permission (iOS 13+)
   const orientationGranted = await lookControls.enableDeviceOrientation();
   if (!orientationGranted) {

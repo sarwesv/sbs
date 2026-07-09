@@ -246,7 +246,7 @@ html, body {
   border: 2px solid #0f0;
   border-radius: 6px;
   padding: 12px;
-  z-index: 50;
+  z-index: 101;
   pointer-events: auto;
   max-width: 280px;
 }
@@ -299,7 +299,7 @@ html, body {
   border: 2px solid #0f0;
   border-radius: 6px;
   padding: 12px;
-  z-index: 50;
+  z-index: 101;
   pointer-events: auto;
   max-width: 300px;
   max-height: 400px;
