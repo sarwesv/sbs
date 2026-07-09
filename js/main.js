@@ -18,8 +18,10 @@ scene.background = new THREE.Color(0x87ceeb);
 scene.fog = new THREE.Fog(0x87ceeb, 500, 4000);
 
 const camera = new THREE.PerspectiveCamera(80, window.innerWidth / window.innerHeight, 0.1, 5000);
-const stereoCamera = new THREE.StereoCamera();
-stereoCamera.eyeSep = EYE_SEPARATION_METERS;
+
+// Create left and right cameras for parallel stereo (no convergence)
+const cameraL = new THREE.PerspectiveCamera(80, window.innerWidth / window.innerHeight, 0.1, 5000);
+const cameraR = new THREE.PerspectiveCamera(80, window.innerWidth / window.innerHeight, 0.1, 5000);
 
 const renderer = new THREE.WebGLRenderer({ antialias: true });
 renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
@@ -174,7 +176,20 @@ function renderFrame() {
     return;
   }
 
-  stereoCamera.update(camera);
+  // Sync left and right cameras with main camera (parallel projection, no convergence)
+  const eyeSepHalf = EYE_SEPARATION_METERS / 2;
+  const offset = new THREE.Vector3(eyeSepHalf, 0, 0).applyQuaternion(camera.quaternion);
+
+  cameraL.position.copy(camera.position).sub(offset);
+  cameraL.quaternion.copy(camera.quaternion);
+  cameraL.aspect = window.innerWidth / window.innerHeight / 2;
+  cameraL.updateProjectionMatrix();
+
+  cameraR.position.copy(camera.position).add(offset);
+  cameraR.quaternion.copy(camera.quaternion);
+  cameraR.aspect = window.innerWidth / window.innerHeight / 2;
+  cameraR.updateProjectionMatrix();
+
   const width = window.innerWidth;
   const height = window.innerHeight;
 
@@ -182,11 +197,11 @@ function renderFrame() {
 
   renderer.setViewport(0, 0, width / 2, height);
   renderer.setScissor(0, 0, width / 2, height);
-  renderer.render(scene, stereoCamera.cameraL);
+  renderer.render(scene, cameraL);
 
   renderer.setViewport(width / 2, 0, width / 2, height);
   renderer.setScissor(width / 2, 0, width / 2, height);
-  renderer.render(scene, stereoCamera.cameraR);
+  renderer.render(scene, cameraR);
 }
 
 let flightStarted = false;
