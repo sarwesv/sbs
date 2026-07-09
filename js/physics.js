@@ -92,9 +92,41 @@ export class Aircraft {
     }
 
     const { throttle, pitch, roll, yaw } = controls;
+    const speed = this.velocity.length();
 
+    // Realistic turn dynamics: roll and yaw effectiveness depends on airspeed
+    // Stall speed roughly at 20 m/s for light aircraft, higher for jets
+    const stallSpeed = Math.max(15, 0.05 * this.config.maxThrust / this.config.mass);
+    const speedFactor = Math.max(0.2, speed / (stallSpeed * 3)); // Effectiveness peaks at 3x stall speed
+
+    // Get current aircraft attitude (pitch and bank)
+    const euler = new THREE.Euler().setFromQuaternion(this.orientation, "YXZ");
+    const bankAngle = euler.z; // Roll angle (bank)
+
+    // Coordinated turn: automatically increase pitch during turn to maintain altitude
+    // Without this, banking alone causes altitude loss
+    let effPitch = pitch;
+    if (Math.abs(bankAngle) > 0.1) {
+      const bankSeverity = Math.abs(bankAngle) / (Math.PI / 3); // Normalized 0-1
+      const needsPitchUp = Math.tan(bankAngle) * (speed * speed / GRAVITY);
+      effPitch = pitch + Math.min(0.3, bankSeverity * 0.5); // Auto pitch up in turns
+    }
+
+    // Roll rate limited by airspeed - faster = better roll authority
+    const rollRate = this.config.maxRollRate * speedFactor;
+
+    // Yaw rate enhanced by coordinated turn (bank angle provides natural yaw)
+    const yawBase = this.config.maxYawRate * speedFactor;
+    const yawFromBank = Math.sin(bankAngle) * speedFactor * 0.3; // Bank naturally causes yaw
+
+    // Apply rotations with realistic coupling
     const deltaQuat = new THREE.Quaternion().setFromEuler(
-      new THREE.Euler(pitch * this.config.maxPitchRate * dt, yaw * this.config.maxYawRate * dt, -roll * this.config.maxRollRate * dt, "YXZ")
+      new THREE.Euler(
+        effPitch * this.config.maxPitchRate * dt,
+        (yaw * yawBase + yawFromBank) * dt,
+        -roll * rollRate * dt,
+        "YXZ"
+      )
     );
     this.orientation.multiply(deltaQuat).normalize();
 
