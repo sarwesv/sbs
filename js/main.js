@@ -254,6 +254,45 @@ function animate() {
 
 requestAnimationFrame(animate);
 
+// Fullscreen on landscape orientation
+function handleOrientationChange() {
+  const isLandscape = window.matchMedia("(orientation: landscape)").matches;
+  const isFullscreen = document.fullscreenElement || document.webkitFullscreenElement;
+
+  if (isLandscape && !isFullscreen) {
+    // Request fullscreen when landscape
+    const elem = document.documentElement;
+    const requestFullscreen =
+      elem.requestFullscreen ||
+      elem.webkitRequestFullscreen ||
+      elem.mozRequestFullScreen ||
+      elem.msRequestFullscreen;
+
+    if (requestFullscreen) {
+      requestFullscreen.call(elem).catch((err) => {
+        console.log("Fullscreen request denied:", err);
+      });
+    }
+  } else if (!isLandscape && isFullscreen) {
+    // Exit fullscreen when portrait
+    const exitFullscreen =
+      document.exitFullscreen ||
+      document.webkitExitFullscreen ||
+      document.mozCancelFullScreen ||
+      document.msExitFullscreen;
+
+    if (exitFullscreen) {
+      exitFullscreen.call(document);
+    }
+  }
+}
+
+window.addEventListener("orientationchange", handleOrientationChange);
+window.addEventListener("resize", handleOrientationChange);
+
+// Initial check
+setTimeout(handleOrientationChange, 100);
+
 // Tutorial / start flow
 const TUTORIAL_SEEN_KEY = "sbs_tutorial_seen";
 const tutorialOverlay = document.getElementById("tutorial-overlay");
