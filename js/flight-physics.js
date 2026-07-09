@@ -137,13 +137,13 @@ export class RealisticAircraft {
     const speedFactor = Math.max(0.1, speed / 50); // Control authority increases with speed
 
     // Pitch from elevator
-    const pitchRate = controls.pitch * this.config.maxControlDeflection * speedFactor;
+    const pitchRate = this.controls.pitch * this.config.maxControlDeflection * speedFactor;
 
     // Roll from aileron
-    const rollRate = -controls.roll * this.config.maxControlDeflection * speedFactor * 1.5;
+    const rollRate = -this.controls.roll * this.config.maxControlDeflection * speedFactor * 1.5;
 
     // Yaw from rudder + coordinated turn
-    let yawRate = controls.yaw * this.config.maxControlDeflection * speedFactor * 0.5;
+    let yawRate = this.controls.yaw * this.config.maxControlDeflection * speedFactor * 0.5;
 
     // Add coordinated turn (bank induces yaw)
     const euler = new THREE.Euler().setFromQuaternion(this.orientation, "YXZ");
