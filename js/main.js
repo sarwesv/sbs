@@ -261,6 +261,11 @@ async function startFlying() {
 
   localStorage.setItem(TUTORIAL_SEEN_KEY, "1");
   tutorialOverlay.classList.add("hidden");
+
+  // Hide HTML HUD elements when stereo mode enabled (canvas HUD takes over)
+  document.getElementById("hud").style.display = "none";
+  document.getElementById("controls-help").style.display = "none";
+
   stereoEnabled = true;
   updateCameraAspect();
   flightStarted = true;
