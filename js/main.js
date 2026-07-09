@@ -20,8 +20,8 @@ scene.fog = new THREE.Fog(0x87ceeb, 500, 4000);
 const camera = new THREE.PerspectiveCamera(80, window.innerWidth / window.innerHeight, 0.1, 5000);
 
 // Create left and right cameras for parallel stereo (no convergence)
-const cameraL = new THREE.PerspectiveCamera(80, window.innerWidth / window.innerHeight, 0.1, 5000);
-const cameraR = new THREE.PerspectiveCamera(80, window.innerWidth / window.innerHeight, 0.1, 5000);
+const cameraL = new THREE.PerspectiveCamera(80, window.innerWidth / window.innerHeight / 2, 0.1, 5000);
+const cameraR = new THREE.PerspectiveCamera(80, window.innerWidth / window.innerHeight / 2, 0.1, 5000);
 
 const renderer = new THREE.WebGLRenderer({ antialias: true });
 renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
@@ -169,8 +169,11 @@ function updateHud(controlsState) {
 }
 
 function renderFrame() {
+  const width = window.innerWidth;
+  const height = window.innerHeight;
+
   if (!stereoEnabled) {
-    renderer.setViewport(0, 0, window.innerWidth, window.innerHeight);
+    renderer.setViewport(0, 0, width, height);
     renderer.setScissorTest(false);
     renderer.render(scene, camera);
     return;
@@ -180,28 +183,35 @@ function renderFrame() {
   const eyeSepHalf = EYE_SEPARATION_METERS / 2;
   const offset = new THREE.Vector3(eyeSepHalf, 0, 0).applyQuaternion(camera.quaternion);
 
+  cameraL.fov = camera.fov;
   cameraL.position.copy(camera.position).sub(offset);
   cameraL.quaternion.copy(camera.quaternion);
-  cameraL.aspect = window.innerWidth / window.innerHeight / 2;
+  cameraL.aspect = (width / 2) / height;
+  cameraL.near = camera.near;
+  cameraL.far = camera.far;
   cameraL.updateProjectionMatrix();
 
+  cameraR.fov = camera.fov;
   cameraR.position.copy(camera.position).add(offset);
   cameraR.quaternion.copy(camera.quaternion);
-  cameraR.aspect = window.innerWidth / window.innerHeight / 2;
+  cameraR.aspect = (width / 2) / height;
+  cameraR.near = camera.near;
+  cameraR.far = camera.far;
   cameraR.updateProjectionMatrix();
-
-  const width = window.innerWidth;
-  const height = window.innerHeight;
 
   renderer.setScissorTest(true);
 
+  // Left eye
   renderer.setViewport(0, 0, width / 2, height);
   renderer.setScissor(0, 0, width / 2, height);
   renderer.render(scene, cameraL);
 
+  // Right eye
   renderer.setViewport(width / 2, 0, width / 2, height);
   renderer.setScissor(width / 2, 0, width / 2, height);
   renderer.render(scene, cameraR);
+
+  renderer.setScissorTest(false);
 }
 
 let flightStarted = false;
@@ -320,12 +330,14 @@ async function startFlying() {
   tutorialOverlay.classList.add("hidden");
 
   // Hide HTML HUD elements when stereo mode enabled (canvas HUD takes over)
-  document.getElementById("hud").style.display = "none";
-  document.getElementById("controls-help").style.display = "none";
+  const hud = document.getElementById("hud");
+  const controlsHelp = document.getElementById("controls-help");
+  if (hud) hud.style.display = "none";
+  if (controlsHelp) controlsHelp.style.display = "none";
 
+  flightStarted = true;
   stereoEnabled = true;
   updateCameraAspect();
-  flightStarted = true;
   lastFrameTime = performance.now();
 }
 
