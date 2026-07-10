@@ -22,11 +22,11 @@ html, body {
 
 #hud {
   position: fixed;
-  top: 10px;
+  top: 70px;
   left: 10px;
   font-family: monospace;
   font-size: 14px;
-  color: #0f0;
+  color: #e0e0e0;
   background: rgba(0, 0, 0, 0.45);
   padding: 8px 12px;
   border-radius: 4px;
@@ -40,7 +40,7 @@ html, body {
 }
 
 .hud-label {
-  color: #9cf;
+  color: #a0a0a0;
 }
 
 #controls-help {
@@ -97,7 +97,7 @@ html, body {
 }
 
 .aircraft-picker-label {
-  color: #9cf;
+  color: #a0a0a0;
   font-size: 12px;
   margin-bottom: 6px;
   font-family: monospace;
@@ -170,29 +170,29 @@ html, body {
 }
 
 #tutorial-body {
-  background: linear-gradient(to bottom, rgba(5, 20, 50, 0.98) 0%, rgba(10, 30, 60, 0.98) 100%);
-  border: 3px solid #0f0;
+  background: linear-gradient(to bottom, rgba(20, 20, 20, 0.98) 0%, rgba(30, 30, 30, 0.98) 100%);
+  border: 3px solid #4a9eff;
   border-radius: 12px;
   padding: 40px;
   max-width: 550px;
   color: #ddd;
   font-family: 'Courier New', monospace;
   text-align: center;
-  box-shadow: 0 0 40px rgba(0, 255, 0, 0.2), inset 0 0 20px rgba(0, 255, 0, 0.05);
+  box-shadow: 0 0 40px rgba(74, 158, 255, 0.2), inset 0 0 20px rgba(74, 158, 255, 0.05);
   backdrop-filter: blur(10px);
 }
 
 #tutorial-body h1 {
-  color: #0f0;
+  color: #4a9eff;
   margin-bottom: 10px;
   font-size: 32px;
   font-weight: bold;
-  text-shadow: 0 0 10px rgba(0, 255, 0, 0.5);
+  text-shadow: 0 0 10px rgba(74, 158, 255, 0.5);
   letter-spacing: 2px;
 }
 
 #tutorial-body > p:first-of-type {
-  color: #9cf;
+  color: #a0a0a0;
   font-size: 13px;
   margin-bottom: 25px;
   font-style: italic;
@@ -206,14 +206,14 @@ html, body {
 }
 
 #tutorial-body strong {
-  color: #0f0;
+  color: #4a9eff;
   font-weight: bold;
 }
 
 #tutorial-body button {
   margin-top: 30px;
   padding: 14px 40px;
-  background: linear-gradient(to right, #0f0, #0f8);
+  background: linear-gradient(to right, #4a9eff, #6bb3ff);
   color: #000;
   border: none;
   border-radius: 6px;
@@ -222,28 +222,28 @@ html, body {
   font-size: 15px;
   font-family: 'Courier New', monospace;
   letter-spacing: 1px;
-  box-shadow: 0 0 15px rgba(0, 255, 0, 0.3);
+  box-shadow: 0 0 15px rgba(74, 158, 255, 0.3);
   transition: all 0.3s ease;
 }
 
 #tutorial-body button:hover {
-  background: linear-gradient(to right, #0f8, #0ff);
-  box-shadow: 0 0 25px rgba(0, 255, 0, 0.6);
+  background: linear-gradient(to right, #6bb3ff, #8cc5ff);
+  box-shadow: 0 0 25px rgba(74, 158, 255, 0.6);
   transform: translateY(-2px);
   letter-spacing: 2px;
 }
 
 #tutorial-body button:active {
   transform: translateY(0);
-  box-shadow: 0 0 15px rgba(0, 255, 0, 0.3);
+  box-shadow: 0 0 15px rgba(74, 158, 255, 0.3);
 }
 
 #aircraft-selector {
   position: fixed;
-  top: 10px;
+  top: 70px;
   right: 10px;
   background: rgba(0, 0, 0, 0.8);
-  border: 2px solid #0f0;
+  border: 2px solid #4a9eff;
   border-radius: 6px;
   padding: 12px;
   z-index: 1000;
@@ -252,7 +252,7 @@ html, body {
 }
 
 #aircraft-selector-label {
-  color: #0f0;
+  color: #4a9eff;
   font-family: monospace;
   font-size: 12px;
   font-weight: bold;
@@ -268,9 +268,9 @@ html, body {
 
 .aircraft-btn {
   padding: 8px 12px;
-  background: rgba(15, 240, 15, 0.1);
-  border: 1px solid #0f0;
-  color: #0f0;
+  background: rgba(74, 158, 255, 0.1);
+  border: 1px solid #4a9eff;
+  color: #4a9eff;
   font-family: monospace;
   font-size: 11px;
   cursor: pointer;
@@ -281,22 +281,22 @@ html, body {
 }
 
 .aircraft-btn:hover {
-  background: rgba(15, 240, 15, 0.2);
-  box-shadow: 0 0 8px rgba(0, 255, 0, 0.3);
+  background: rgba(74, 158, 255, 0.2);
+  box-shadow: 0 0 8px rgba(74, 158, 255, 0.3);
 }
 
 .aircraft-btn.active {
-  background: rgba(15, 240, 15, 0.4);
-  box-shadow: 0 0 12px rgba(0, 255, 0, 0.6);
-  border-color: #0f8;
+  background: rgba(74, 158, 255, 0.4);
+  box-shadow: 0 0 12px rgba(74, 158, 255, 0.6);
+  border-color: #6bb3ff;
 }
 
 #location-selector {
   position: fixed;
-  top: 10px;
+  top: 70px;
   left: 10px;
   background: rgba(0, 0, 0, 0.8);
-  border: 2px solid #0f0;
+  border: 2px solid #4a9eff;
   border-radius: 6px;
   padding: 12px;
   z-index: 1000;
@@ -307,7 +307,7 @@ html, body {
 }
 
 #location-selector-label {
-  color: #0f0;
+  color: #4a9eff;
   font-family: monospace;
   font-size: 12px;
   font-weight: bold;
@@ -318,9 +318,9 @@ html, body {
 #location-search {
   width: 100%;
   padding: 6px 8px;
-  background: rgba(15, 240, 15, 0.1);
-  border: 1px solid #0f0;
-  color: #0f0;
+  background: rgba(74, 158, 255, 0.1);
+  border: 1px solid #4a9eff;
+  color: #4a9eff;
   font-family: monospace;
   font-size: 11px;
   border-radius: 3px;
@@ -329,13 +329,13 @@ html, body {
 }
 
 #location-search::placeholder {
-  color: rgba(0, 255, 0, 0.5);
+  color: rgba(74, 158, 255, 0.5);
 }
 
 #location-search:focus {
   outline: none;
-  background: rgba(15, 240, 15, 0.2);
-  box-shadow: 0 0 8px rgba(0, 255, 0, 0.3);
+  background: rgba(74, 158, 255, 0.2);
+  box-shadow: 0 0 8px rgba(74, 158, 255, 0.3);
 }
 
 #location-list {
@@ -348,9 +348,9 @@ html, body {
 
 .location-btn {
   padding: 8px 12px;
-  background: rgba(15, 240, 15, 0.1);
-  border: 1px solid #0f0;
-  color: #0f0;
+  background: rgba(74, 158, 255, 0.1);
+  border: 1px solid #4a9eff;
+  color: #4a9eff;
   font-family: monospace;
   font-size: 10px;
   cursor: pointer;
@@ -361,14 +361,14 @@ html, body {
 }
 
 .location-btn:hover {
-  background: rgba(15, 240, 15, 0.2);
-  box-shadow: 0 0 8px rgba(0, 255, 0, 0.3);
+  background: rgba(74, 158, 255, 0.2);
+  box-shadow: 0 0 8px rgba(74, 158, 255, 0.3);
 }
 
 .location-btn.active {
-  background: rgba(15, 240, 15, 0.4);
-  box-shadow: 0 0 12px rgba(0, 255, 0, 0.6);
-  border-color: #0f8;
+  background: rgba(74, 158, 255, 0.4);
+  box-shadow: 0 0 12px rgba(74, 158, 255, 0.6);
+  border-color: #6bb3ff;
 }
 
 .location-btn-name {
@@ -378,7 +378,7 @@ html, body {
 
 .location-btn-desc {
   font-size: 9px;
-  color: #9cf;
+  color: #a0a0a0;
   margin-top: 2px;
 }
 
@@ -388,7 +388,7 @@ html, body {
   left: 50%;
   transform: translateX(-50%);
   background: rgba(0, 0, 0, 0.8);
-  border: 2px solid #0f0;
+  border: 2px solid #4a9eff;
   border-radius: 6px;
   padding: 12px;
   z-index: 1000;
@@ -397,7 +397,7 @@ html, body {
 }
 
 #camera-selector-label {
-  color: #0f0;
+  color: #4a9eff;
   font-family: monospace;
   font-size: 12px;
   font-weight: bold;
@@ -413,9 +413,9 @@ html, body {
 
 .camera-btn {
   padding: 8px 12px;
-  background: rgba(15, 240, 15, 0.1);
-  border: 1px solid #0f0;
-  color: #0f0;
+  background: rgba(74, 158, 255, 0.1);
+  border: 1px solid #4a9eff;
+  color: #4a9eff;
   font-family: monospace;
   font-size: 11px;
   cursor: pointer;
@@ -431,14 +431,14 @@ html, body {
 }
 
 .camera-btn:hover {
-  background: rgba(15, 240, 15, 0.2);
-  box-shadow: 0 0 8px rgba(0, 255, 0, 0.3);
+  background: rgba(74, 158, 255, 0.2);
+  box-shadow: 0 0 8px rgba(74, 158, 255, 0.3);
 }
 
 .camera-btn.active {
-  background: rgba(15, 240, 15, 0.4);
-  box-shadow: 0 0 12px rgba(0, 255, 0, 0.6);
-  border-color: #0f8;
+  background: rgba(74, 158, 255, 0.4);
+  box-shadow: 0 0 12px rgba(74, 158, 255, 0.6);
+  border-color: #6bb3ff;
 }
 
 #location-list.collapsed {
@@ -447,4 +447,133 @@ html, body {
 
 #location-search.collapsed {
   display: none;
+}
+
+#autopilot-panel {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 60px;
+  background: linear-gradient(to bottom, rgba(30, 60, 100, 0.95) 0%, rgba(20, 40, 70, 0.95) 100%);
+  border-bottom: 2px solid #4a9eff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 30px;
+  padding: 8px 20px;
+  box-sizing: border-box;
+  z-index: 2000;
+  pointer-events: auto;
+  font-family: monospace;
+}
+
+#autopilot-toggle {
+  padding: 10px 24px;
+  background: rgba(74, 158, 255, 0.2);
+  border: 2px solid #4a9eff;
+  color: #4a9eff;
+  font-family: monospace;
+  font-size: 12px;
+  font-weight: bold;
+  border-radius: 20px;
+  cursor: pointer;
+  transition: all 0.3s;
+  white-space: nowrap;
+  user-select: none;
+}
+
+#autopilot-toggle:hover {
+  background: rgba(74, 158, 255, 0.3);
+  box-shadow: 0 0 12px rgba(74, 158, 255, 0.4);
+}
+
+#autopilot-toggle.active {
+  background: rgba(76, 175, 80, 0.3);
+  border-color: #4caf50;
+  color: #4caf50;
+  box-shadow: 0 0 12px rgba(76, 175, 80, 0.5);
+}
+
+.ap-control {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(0, 0, 0, 0.3);
+  border: 2px solid #4a9eff;
+  border-radius: 20px;
+  padding: 6px 8px;
+}
+
+.ap-minus,
+.ap-plus {
+  background: transparent;
+  border: 1px solid #4a9eff;
+  color: #4a9eff;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 18px;
+  font-weight: bold;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.ap-minus:hover,
+.ap-plus:hover {
+  background: rgba(74, 158, 255, 0.2);
+  box-shadow: 0 0 8px rgba(74, 158, 255, 0.3);
+}
+
+.ap-minus:active,
+.ap-plus:active {
+  background: rgba(74, 158, 255, 0.4);
+}
+
+.ap-display {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-width: 80px;
+  padding: 4px 12px;
+  user-select: none;
+}
+
+.ap-value {
+  font-size: 16px;
+  font-weight: bold;
+  color: #e0e0e0;
+  letter-spacing: 1px;
+}
+
+.ap-label {
+  font-size: 10px;
+  color: #a0a0a0;
+  margin-top: 2px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.ap-label-row {
+  display: flex;
+  gap: 8px;
+  font-size: 10px;
+  margin-top: 2px;
+}
+
+.ap-label-row .ap-label {
+  margin-top: 0;
+  color: #a0a0a0;
+}
+
+.ap-nav-label {
+  color: #4a9eff;
+  font-weight: bold;
+  text-transform: uppercase;
+  letter-spacing: 1px;
 }

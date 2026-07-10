@@ -21,6 +21,49 @@
 <body>
   <div id="scene-container"></div>
 
+  <div id="autopilot-panel">
+    <button id="autopilot-toggle" class="autopilot-btn">AUTOPILOT</button>
+
+    <div class="ap-control">
+      <button class="ap-minus">−</button>
+      <div class="ap-display">
+        <div class="ap-value" id="ap-speed">266.2</div>
+        <div class="ap-label">KTS</div>
+      </div>
+      <button class="ap-plus">+</button>
+    </div>
+
+    <div class="ap-control">
+      <button class="ap-minus">−</button>
+      <div class="ap-display">
+        <div class="ap-value" id="ap-heading">087</div>
+        <div class="ap-label-row">
+          <span class="ap-label">HDG</span>
+          <span class="ap-nav-label">NAV</span>
+        </div>
+      </div>
+      <button class="ap-plus">+</button>
+    </div>
+
+    <div class="ap-control">
+      <button class="ap-minus">−</button>
+      <div class="ap-display">
+        <div class="ap-value" id="ap-altitude">100000</div>
+        <div class="ap-label">ALTITUDE</div>
+      </div>
+      <button class="ap-plus">+</button>
+    </div>
+
+    <div class="ap-control">
+      <button class="ap-minus">−</button>
+      <div class="ap-display">
+        <div class="ap-value" id="ap-vs">2598</div>
+        <div class="ap-label">VERT SPEED</div>
+      </div>
+      <button class="ap-plus">+</button>
+    </div>
+  </div>
+
   <div id="hud">
     <div class="hud-row"><span class="hud-label">STATUS</span><span id="status-value" class="hud-value">ON GROUND</span></div>
     <div class="hud-row"><span class="hud-label">AIRSPEED</span><span id="airspeed-value" class="hud-value">0 kt</span></div>
@@ -44,7 +87,7 @@
   <div id="location-selector">
     <div style="display: flex; justify-content: space-between; align-items: center;">
       <div id="location-selector-label">LOCATION:</div>
-      <button id="location-toggle" type="button" style="background: none; border: none; color: #0f0; cursor: pointer; font-size: 16px;">▼</button>
+      <button id="location-toggle" type="button" style="background: none; border: none; color: #4a9eff; cursor: pointer; font-size: 16px;">▼</button>
     </div>
     <input id="location-search" type="text" placeholder="Search locations...">
     <div id="location-list"></div>

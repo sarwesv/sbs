@@ -3,7 +3,8 @@ import { RealisticAircraft, FlightPhysicsConfig } from "./flight-physics.js";
 import { KeyboardControls } from "./controls.js";
 import { LookControls } from "./look-controls.js";
 import { createTerrain } from "./terrain.js";
-import { CockpitHUD } from "./cockpit-hud.js";
+import { RealisticHUD } from "./realistic-hud.js";
+import { Autopilot } from "./autopilot.js";
 import { AIRCRAFT_MODELS, DEFAULT_AIRCRAFT } from "./aircraft-models.js";
 import { FLYING_LOCATIONS, DEFAULT_LOCATION } from "./locations.js";
 import CONFIG from "./config.js";
@@ -176,21 +177,24 @@ let activeControls = keyboardControls;
 
 const lookControls = new LookControls(renderer.domElement);
 
-// Cockpit HUD with instruments
+// Autopilot system
+const autopilot = new Autopilot();
+
+// Realistic HUD with analog instruments
 const sceneContainer = document.getElementById("scene-container");
-const cockpitHUD = new CockpitHUD(sceneContainer, window.innerWidth, window.innerHeight);
+const cockpitHUD = new RealisticHUD(sceneContainer, window.innerWidth, window.innerHeight);
 
 // Camera view modes
 const CAMERA_MODES = {
-  cockpit: { name: "Cockpit cam", offset: new THREE.Vector3(0, 1.1, -1.5) },
-  cockpitless: { name: "Cockpit-less cam", offset: new THREE.Vector3(0, 1.5, 0) },
-  follow: { name: "Follow cam", offset: new THREE.Vector3(0, 5, 15) },
-  chase: { name: "Chase cam", offset: new THREE.Vector3(0, 3, 8) },
-  free: { name: "Free cam", offset: new THREE.Vector3(0, 10, 20) },
-  fixed: { name: "Fixed cam", offset: new THREE.Vector3(0, 2, 5) }
+  topdown: { name: "Top-Down", offset: new THREE.Vector3(0, 30, 35) },
+  chase: { name: "Chase Cam", offset: new THREE.Vector3(0, 5, 15) },
+  follow: { name: "Follow Cam", offset: new THREE.Vector3(0, 8, 25) },
+  cockpit: { name: "Cockpit", offset: new THREE.Vector3(0, 1.1, -1.5) },
+  external: { name: "External", offset: new THREE.Vector3(0, 3, 8) },
+  fixed: { name: "Fixed", offset: new THREE.Vector3(0, 2, 5) }
 };
 
-let currentCameraMode = "cockpit";
+let currentCameraMode = "topdown";
 
 function updateCameraMode() {
   const mode = CAMERA_MODES[currentCameraMode];
@@ -303,7 +307,20 @@ function animate() {
   }
 
   const dt = flightStarted ? Math.min(rawDt, 0.05) : 0;
-  const controlsState = activeControls.getState(dt);
+  let controlsState = activeControls.getState(dt);
+
+  // Apply autopilot controls if enabled
+  if (autopilot.enabled) {
+    const apControls = autopilot.calculateControls(aircraft);
+    // Blend autopilot with manual controls (autopilot takes priority)
+    controlsState = {
+      throttle: apControls.throttle,
+      pitch: apControls.pitch,
+      roll: apControls.roll,
+      yaw: apControls.yaw
+    };
+  }
+
   aircraft.updatePhysics(dt, controlsState, GROUND_HEIGHT);
 
   aircraftMesh.position.copy(aircraft.position);
@@ -466,7 +483,6 @@ if (aircraftButtonsContainer) {
     btn.style.pointerEvents = "auto";
     btn.style.cursor = "pointer";
     btn.onclick = function(e) {
-      alert("AIRCRAFT CLICKED: " + key);
       console.log("🎯 AIRCRAFT BUTTON CLICK EVENT FIRED:", key);
       if (!flightStarted) {
         console.log("✈️ Switching aircraft to:", model.name);
@@ -571,7 +587,6 @@ if (cameraButtonsContainer) {
     btn.style.pointerEvents = "auto";
     btn.style.cursor = "pointer";
     btn.onclick = function(e) {
-      alert("CAMERA CLICKED: " + key);
       console.log("🎥 CAMERA BUTTON CLICK EVENT FIRED:", key);
       currentCameraMode = key;
       document.querySelectorAll(".camera-btn").forEach(b => b.classList.remove("active"));
@@ -586,3 +601,111 @@ if (cameraButtonsContainer) {
 } else {
   console.error("❌ Camera buttons container NOT FOUND");
 }
+
+// Autopilot UI initialization
+const autopilotToggle = document.getElementById("autopilot-toggle");
+const apSpeedDisplay = document.getElementById("ap-speed");
+const apHeadingDisplay = document.getElementById("ap-heading");
+const apAltitudeDisplay = document.getElementById("ap-altitude");
+const apVsDisplay = document.getElementById("ap-vs");
+const apControls = document.querySelectorAll(".ap-control");
+
+console.log("=== AUTOPILOT UI ===");
+console.log("Toggle button found:", !!autopilotToggle);
+console.log("Display elements found:", !!apSpeedDisplay, !!apHeadingDisplay, !!apAltitudeDisplay, !!apVsDisplay);
+
+// Update autopilot display values
+function updateAutopilotDisplay() {
+  const values = autopilot.getDisplayValues();
+  if (apSpeedDisplay) apSpeedDisplay.textContent = values.speed;
+  if (apHeadingDisplay) apHeadingDisplay.textContent = values.heading;
+  if (apAltitudeDisplay) apAltitudeDisplay.textContent = values.altitude;
+  if (apVsDisplay) apVsDisplay.textContent = values.verticalSpeed;
+}
+
+// Autopilot toggle
+if (autopilotToggle) {
+  autopilotToggle.addEventListener("click", () => {
+    const enabled = autopilot.toggle();
+    autopilotToggle.classList.toggle("active", enabled);
+    console.log("🤖 Autopilot toggled:", enabled ? "ON" : "OFF");
+  });
+} else {
+  console.error("Autopilot toggle button NOT FOUND");
+}
+
+// Autopilot control buttons
+if (apControls.length > 0) {
+  console.log("Found", apControls.length, "autopilot controls");
+
+  // Speed controls (first control)
+  const speedMinus = apControls[0].querySelector(".ap-minus");
+  const speedPlus = apControls[0].querySelector(".ap-plus");
+  if (speedMinus) {
+    speedMinus.addEventListener("click", () => {
+      autopilot.updateTargetSpeed(-5);
+      updateAutopilotDisplay();
+    });
+  }
+  if (speedPlus) {
+    speedPlus.addEventListener("click", () => {
+      autopilot.updateTargetSpeed(5);
+      updateAutopilotDisplay();
+    });
+  }
+
+  // Heading controls (second control)
+  const headingMinus = apControls[1].querySelector(".ap-minus");
+  const headingPlus = apControls[1].querySelector(".ap-plus");
+  if (headingMinus) {
+    headingMinus.addEventListener("click", () => {
+      autopilot.updateTargetHeading(-5);
+      updateAutopilotDisplay();
+    });
+  }
+  if (headingPlus) {
+    headingPlus.addEventListener("click", () => {
+      autopilot.updateTargetHeading(5);
+      updateAutopilotDisplay();
+    });
+  }
+
+  // Altitude controls (third control)
+  const altitudeMinus = apControls[2].querySelector(".ap-minus");
+  const altitudePlus = apControls[2].querySelector(".ap-plus");
+  if (altitudeMinus) {
+    altitudeMinus.addEventListener("click", () => {
+      autopilot.updateTargetAltitude(-100);
+      updateAutopilotDisplay();
+    });
+  }
+  if (altitudePlus) {
+    altitudePlus.addEventListener("click", () => {
+      autopilot.updateTargetAltitude(100);
+      updateAutopilotDisplay();
+    });
+  }
+
+  // Vertical speed controls (fourth control)
+  const vsMinus = apControls[3].querySelector(".ap-minus");
+  const vsPlus = apControls[3].querySelector(".ap-plus");
+  if (vsMinus) {
+    vsMinus.addEventListener("click", () => {
+      autopilot.updateTargetVerticalSpeed(-1);
+      updateAutopilotDisplay();
+    });
+  }
+  if (vsPlus) {
+    vsPlus.addEventListener("click", () => {
+      autopilot.updateTargetVerticalSpeed(1);
+      updateAutopilotDisplay();
+    });
+  }
+
+  console.log("✅ Autopilot controls initialized");
+} else {
+  console.error("No autopilot controls found");
+}
+
+// Initialize display with default values
+updateAutopilotDisplay();
