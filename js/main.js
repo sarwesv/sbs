@@ -466,9 +466,8 @@ if (aircraftButtonsContainer) {
     btn.style.pointerEvents = "auto";
     btn.style.cursor = "pointer";
     btn.onclick = function(e) {
+      alert("AIRCRAFT CLICKED: " + key);
       console.log("🎯 AIRCRAFT BUTTON CLICK EVENT FIRED:", key);
-      e.preventDefault();
-      e.stopPropagation();
       if (!flightStarted) {
         console.log("✈️ Switching aircraft to:", model.name);
         switchAircraft(key);
@@ -572,9 +571,8 @@ if (cameraButtonsContainer) {
     btn.style.pointerEvents = "auto";
     btn.style.cursor = "pointer";
     btn.onclick = function(e) {
+      alert("CAMERA CLICKED: " + key);
       console.log("🎥 CAMERA BUTTON CLICK EVENT FIRED:", key);
-      e.preventDefault();
-      e.stopPropagation();
       currentCameraMode = key;
       document.querySelectorAll(".camera-btn").forEach(b => b.classList.remove("active"));
       btn.classList.add("active");
