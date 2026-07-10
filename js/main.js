@@ -454,7 +454,10 @@ if (reopenTutorialButton) {
 const aircraftButtonsContainer = document.getElementById("aircraft-buttons");
 console.log("=== AIRCRAFT SELECTOR ===");
 console.log("Container found:", !!aircraftButtonsContainer);
+console.log("AIRCRAFT_MODELS available:", !!AIRCRAFT_MODELS, Object.keys(AIRCRAFT_MODELS).length);
+
 if (aircraftButtonsContainer) {
+  let buttonCount = 0;
   Object.entries(AIRCRAFT_MODELS).forEach(([key, model]) => {
     const btn = document.createElement("button");
     btn.className = "aircraft-btn" + (key === DEFAULT_AIRCRAFT ? " active" : "");
@@ -462,24 +465,26 @@ if (aircraftButtonsContainer) {
     btn.title = model.description;
     btn.style.pointerEvents = "auto";
     btn.style.cursor = "pointer";
-    btn.addEventListener("click", (e) => {
-      console.log("AIRCRAFT BUTTON CLICKED:", key);
+    btn.onclick = function(e) {
+      console.log("🎯 AIRCRAFT BUTTON CLICK EVENT FIRED:", key);
       e.preventDefault();
       e.stopPropagation();
       if (!flightStarted) {
-        console.log("Switching aircraft to:", model.name);
+        console.log("✈️ Switching aircraft to:", model.name);
         switchAircraft(key);
         document.querySelectorAll(".aircraft-btn").forEach(b => b.classList.remove("active"));
         btn.classList.add("active");
       } else {
-        console.log("Cannot switch - flight started");
+        console.log("❌ Cannot switch - flight started");
       }
-    });
+    };
     aircraftButtonsContainer.appendChild(btn);
+    buttonCount++;
+    console.log(`✓ Aircraft button created: ${model.name}`);
   });
-  console.log("Aircraft buttons added:", Object.keys(AIRCRAFT_MODELS).length);
+  console.log("✅ Total aircraft buttons added:", buttonCount);
 } else {
-  console.error("Aircraft buttons container NOT FOUND");
+  console.error("❌ Aircraft buttons container NOT FOUND");
 }
 
 // Location selector UI
@@ -556,26 +561,30 @@ if (locationToggle) {
 const cameraButtonsContainer = document.getElementById("camera-buttons");
 console.log("=== CAMERA SELECTOR ===");
 console.log("Camera buttons container found:", !!cameraButtonsContainer);
+console.log("CAMERA_MODES available:", !!CAMERA_MODES, Object.keys(CAMERA_MODES).length);
 
 if (cameraButtonsContainer) {
+  let cameraButtonCount = 0;
   Object.entries(CAMERA_MODES).forEach(([key, mode]) => {
     const btn = document.createElement("button");
     btn.className = "camera-btn" + (key === currentCameraMode ? " active" : "");
     btn.textContent = mode.name;
     btn.style.pointerEvents = "auto";
     btn.style.cursor = "pointer";
-    btn.addEventListener("click", (e) => {
-      console.log("CAMERA BUTTON CLICKED:", key);
+    btn.onclick = function(e) {
+      console.log("🎥 CAMERA BUTTON CLICK EVENT FIRED:", key);
       e.preventDefault();
       e.stopPropagation();
       currentCameraMode = key;
       document.querySelectorAll(".camera-btn").forEach(b => b.classList.remove("active"));
       btn.classList.add("active");
-      console.log("Switched to camera:", mode.name);
-    });
+      console.log("📹 Switched to camera:", mode.name);
+    };
     cameraButtonsContainer.appendChild(btn);
+    cameraButtonCount++;
+    console.log(`✓ Camera button created: ${mode.name}`);
   });
-  console.log("Camera buttons added:", Object.keys(CAMERA_MODES).length);
+  console.log("✅ Total camera buttons added:", cameraButtonCount);
 } else {
-  console.error("Camera buttons container NOT FOUND");
+  console.error("❌ Camera buttons container NOT FOUND");
 }
