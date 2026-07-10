@@ -152,7 +152,7 @@ function buildAircraftMesh() {
 }
 
 const aircraftMesh = buildAircraftMesh();
-aircraftMesh.visible = false; // cockpit view only
+aircraftMesh.visible = true; // visible in external views
 scene.add(aircraftMesh);
 
 // Aircraft configuration and selection
@@ -325,6 +325,9 @@ function animate() {
 
   aircraftMesh.position.copy(aircraft.position);
   aircraftMesh.quaternion.copy(aircraft.orientation);
+
+  // Hide aircraft mesh in cockpit view, show in all other views
+  aircraftMesh.visible = currentCameraMode !== "cockpit";
 
   updateCockpitCamera();
   camera.updateMatrixWorld(); // Ensure main camera is updated for terrain
