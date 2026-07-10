@@ -180,12 +180,37 @@ const lookControls = new LookControls(renderer.domElement);
 const sceneContainer = document.getElementById("scene-container");
 const cockpitHUD = new CockpitHUD(sceneContainer, window.innerWidth, window.innerHeight);
 
+// Camera view modes
+const CAMERA_MODES = {
+  cockpit: { name: "Cockpit cam", offset: new THREE.Vector3(0, 1.1, -1.5) },
+  cockpitless: { name: "Cockpit-less cam", offset: new THREE.Vector3(0, 1.5, 0) },
+  follow: { name: "Follow cam", offset: new THREE.Vector3(0, 5, 15) },
+  chase: { name: "Chase cam", offset: new THREE.Vector3(0, 3, 8) },
+  free: { name: "Free cam", offset: new THREE.Vector3(0, 10, 20) },
+  fixed: { name: "Fixed cam", offset: new THREE.Vector3(0, 2, 5) }
+};
+
+let currentCameraMode = "cockpit";
+
+function updateCameraMode() {
+  const mode = CAMERA_MODES[currentCameraMode];
+  const offset = mode.offset.clone().applyQuaternion(aircraft.orientation);
+  camera.position.copy(aircraft.position).add(offset);
+  camera.quaternion.copy(aircraft.orientation);
+}
+
 function updateCockpitCamera() {
-  const worldPosition = COCKPIT_OFFSET_LOCAL.clone()
-    .applyQuaternion(aircraft.orientation)
-    .add(aircraft.position);
-  camera.position.copy(worldPosition);
-  camera.quaternion.copy(aircraft.orientation).multiply(lookControls.headQuaternion);
+  if (currentCameraMode === "cockpit") {
+    // Cockpit mode includes head tracking
+    const worldPosition = COCKPIT_OFFSET_LOCAL.clone()
+      .applyQuaternion(aircraft.orientation)
+      .add(aircraft.position);
+    camera.position.copy(worldPosition);
+    camera.quaternion.copy(aircraft.orientation).multiply(lookControls.headQuaternion);
+  } else {
+    // Other modes: fixed offset, no head tracking
+    updateCameraMode();
+  }
 }
 
 const hud = {
@@ -510,4 +535,47 @@ if (locationSearchInput && locationListContainer) {
   console.log("Location selector initialized");
 } else {
   console.error("Location selector NOT initialized - missing elements");
+}
+
+// Location collapse toggle
+const locationToggle = document.getElementById("location-toggle");
+let locationCollapsed = false;
+if (locationToggle) {
+  locationToggle.addEventListener("click", (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    locationCollapsed = !locationCollapsed;
+    if (locationSearchInput) locationSearchInput.classList.toggle("collapsed");
+    if (locationListContainer) locationListContainer.classList.toggle("collapsed");
+    locationToggle.textContent = locationCollapsed ? "▶" : "▼";
+    console.log("Location selector toggled:", locationCollapsed ? "collapsed" : "expanded");
+  });
+}
+
+// Camera selector UI
+const cameraButtonsContainer = document.getElementById("camera-buttons");
+console.log("=== CAMERA SELECTOR ===");
+console.log("Camera buttons container found:", !!cameraButtonsContainer);
+
+if (cameraButtonsContainer) {
+  Object.entries(CAMERA_MODES).forEach(([key, mode]) => {
+    const btn = document.createElement("button");
+    btn.className = "camera-btn" + (key === currentCameraMode ? " active" : "");
+    btn.textContent = mode.name;
+    btn.style.pointerEvents = "auto";
+    btn.style.cursor = "pointer";
+    btn.addEventListener("click", (e) => {
+      console.log("CAMERA BUTTON CLICKED:", key);
+      e.preventDefault();
+      e.stopPropagation();
+      currentCameraMode = key;
+      document.querySelectorAll(".camera-btn").forEach(b => b.classList.remove("active"));
+      btn.classList.add("active");
+      console.log("Switched to camera:", mode.name);
+    });
+    cameraButtonsContainer.appendChild(btn);
+  });
+  console.log("Camera buttons added:", Object.keys(CAMERA_MODES).length);
+} else {
+  console.error("Camera buttons container NOT FOUND");
 }

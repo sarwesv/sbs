@@ -381,3 +381,64 @@ html, body {
   color: #9cf;
   margin-top: 2px;
 }
+
+#camera-selector {
+  position: fixed;
+  bottom: 100px;
+  left: 10px;
+  background: rgba(0, 0, 0, 0.8);
+  border: 2px solid #0f0;
+  border-radius: 6px;
+  padding: 12px;
+  z-index: 101;
+  pointer-events: auto;
+  max-width: 300px;
+}
+
+#camera-selector-label {
+  color: #0f0;
+  font-family: monospace;
+  font-size: 12px;
+  font-weight: bold;
+  margin-bottom: 8px;
+  letter-spacing: 1px;
+}
+
+#camera-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.camera-btn {
+  padding: 8px 12px;
+  background: rgba(15, 240, 15, 0.1);
+  border: 1px solid #0f0;
+  color: #0f0;
+  font-family: monospace;
+  font-size: 11px;
+  cursor: pointer;
+  border-radius: 3px;
+  transition: all 0.2s;
+  text-align: left;
+  font-weight: bold;
+}
+
+.camera-btn:hover {
+  background: rgba(15, 240, 15, 0.2);
+  box-shadow: 0 0 8px rgba(0, 255, 0, 0.3);
+}
+
+.camera-btn.active {
+  background: rgba(15, 240, 15, 0.4);
+  box-shadow: 0 0 12px rgba(0, 255, 0, 0.6);
+  border-color: #0f8;
+}
+
+#location-list.collapsed {
+  display: none;
+}
+
+#location-search.collapsed {
+  display: none;
+}

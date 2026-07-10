@@ -42,9 +42,17 @@
   </div>
 
   <div id="location-selector">
-    <div id="location-selector-label">LOCATION:</div>
+    <div style="display: flex; justify-content: space-between; align-items: center;">
+      <div id="location-selector-label">LOCATION:</div>
+      <button id="location-toggle" type="button" style="background: none; border: none; color: #0f0; cursor: pointer; font-size: 16px;">▼</button>
+    </div>
     <input id="location-search" type="text" placeholder="Search locations...">
     <div id="location-list"></div>
+  </div>
+
+  <div id="camera-selector">
+    <div id="camera-selector-label">CAMERA:</div>
+    <div id="camera-buttons"></div>
   </div>
 
   <div id="tutorial-overlay">
